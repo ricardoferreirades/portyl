@@ -182,7 +182,9 @@ describe('BrowserFileViewer', () => {
         destroy: jest.fn(),
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn()
+        dispatchEvent: jest.fn(),
+        setEventTarget: jest.fn(),
+        subscribe: jest.fn().mockReturnValue(() => {})
       };
 
       // Temporarily replace createProcessor to return our mock
