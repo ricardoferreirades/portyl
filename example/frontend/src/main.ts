@@ -3,6 +3,7 @@ import './style.css';
 
 // Initialize the file viewer
 const viewer = new BrowserFileViewer();
+let currentImageViewer: any = null; // Store reference to current viewer instance
 
 // Get DOM elements
 const uploadArea = document.getElementById('uploadArea') as HTMLElement;
@@ -12,6 +13,7 @@ const viewerContainer = document.getElementById('viewerContainer') as HTMLElemen
 const messageContainer = document.getElementById('messageContainer') as HTMLElement;
 const supportedTypesContainer = document.getElementById('supportedTypes') as HTMLElement;
 const filesTableBody = document.getElementById('filesTableBody') as HTMLElement;
+const paginationControls = document.getElementById('paginationControls') as HTMLElement;
 
 // File information interface
 interface FileItem {
@@ -19,6 +21,123 @@ interface FileItem {
   size: number;
   type: string;
   path: string;
+}
+
+// Setup external pagination controls
+function setupPaginationControls(): void {
+  console.log('Setting up pagination controls');
+  
+  // Listen for pagination events from the viewer
+  (viewer as any).addEventListener('pagination-available', (event: any) => {
+    console.log('Pagination available event:', event.detail);
+    const { currentPage, totalPages } = event.detail;
+    showPaginationControls(currentPage, totalPages);
+  });
+
+  (viewer as any).addEventListener('pagination-hide', () => {
+    console.log('Pagination hide event');
+    hidePaginationControls();
+  });
+
+  (viewer as any).addEventListener('pagination-update', (event: any) => {
+    console.log('Pagination update event:', event.detail);
+    const { currentPage, totalPages } = event.detail;
+    updatePaginationControls(currentPage, totalPages);
+  });
+}
+
+function showPaginationControls(currentPage: number, totalPages: number): void {
+  paginationControls.innerHTML = `
+    <button id="prevPageBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200" ${currentPage <= 1 ? 'disabled' : ''}>
+      ◀ Previous
+    </button>
+    <span class="text-gray-700 font-semibold px-2">Page</span>
+    <input type="number" id="pageInput" class="w-16 px-2 py-2 border border-gray-300 rounded-lg text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" min="1" max="${totalPages}" value="${currentPage}" />
+    <span class="text-gray-700 font-semibold px-2">of ${totalPages}</span>
+    <button id="nextPageBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200" ${currentPage >= totalPages ? 'disabled' : ''}>
+      Next ▶
+    </button>
+  `;
+  
+  paginationControls.classList.remove('hidden');
+  paginationControls.classList.add('flex');
+  
+  // Add event listeners
+  const prevBtn = document.getElementById('prevPageBtn') as HTMLButtonElement;
+  const nextBtn = document.getElementById('nextPageBtn') as HTMLButtonElement;
+  const pageInput = document.getElementById('pageInput') as HTMLInputElement;
+  
+  prevBtn.addEventListener('click', async () => {
+    console.log('Previous button clicked');
+    if (currentImageViewer && currentImageViewer.previousPage) {
+      await currentImageViewer.previousPage();
+      console.log('Previous page called');
+    }
+  });
+  
+  nextBtn.addEventListener('click', async () => {
+    console.log('Next button clicked');
+    if (currentImageViewer && currentImageViewer.nextPage) {
+      await currentImageViewer.nextPage();
+      console.log('Next page called');
+    }
+  });
+  
+  pageInput.addEventListener('change', async (e) => {
+    const target = e.target as HTMLInputElement;
+    const pageNum = parseInt(target.value);
+    console.log('Page input changed to:', pageNum);
+    if (pageNum >= 1 && pageNum <= totalPages && currentImageViewer && currentImageViewer.jumpToPage) {
+      await currentImageViewer.jumpToPage(pageNum);
+      console.log('Jump to page called with:', pageNum);
+    } else {
+      target.value = currentPage.toString();
+    }
+  });
+  
+  pageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      pageInput.blur();
+    }
+  });
+}
+
+function updatePaginationControls(currentPage: number, totalPages: number): void {
+  console.log('Updating pagination controls:', { currentPage, totalPages });
+  
+  const prevBtn = document.getElementById('prevPageBtn') as HTMLButtonElement;
+  const nextBtn = document.getElementById('nextPageBtn') as HTMLButtonElement;
+  const pageInput = document.getElementById('pageInput') as HTMLInputElement;
+  
+  if (prevBtn) {
+    prevBtn.disabled = currentPage <= 1;
+    prevBtn.className = `bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ${
+      currentPage <= 1 ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-blue-600'
+    }`;
+  }
+  
+  if (nextBtn) {
+    nextBtn.disabled = currentPage >= totalPages;
+    nextBtn.className = `bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ${
+      currentPage >= totalPages ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-blue-600'
+    }`;
+  }
+  
+  if (pageInput) {
+    pageInput.value = currentPage.toString();
+    pageInput.max = totalPages.toString();
+  }
+  
+  // Update the "of X" text
+  const ofSpan = paginationControls.querySelector('span:last-of-type');
+  if (ofSpan) {
+    ofSpan.textContent = `of ${totalPages}`;
+  }
+}
+
+function hidePaginationControls(): void {
+  paginationControls.classList.add('hidden');
+  paginationControls.classList.remove('flex');
 }
 
 // Display supported file types
@@ -77,14 +196,14 @@ async function loadExampleFiles(): Promise<void> {
         <td class="file-name" title="${file.name}">${file.name}</td>
         <td class="file-size">${formatFileSize(file.size)}</td>
         <td class="file-type">${file.type}</td>
-        <td><button class="view-button" data-file-path="${file.path}" data-file-name="${file.name}" data-file-type="${file.type}" ${!isSupported ? 'disabled' : ''}>View</button></td>
+        <td><button class="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded text-xs transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed" data-file-path="${file.path}" data-file-name="${file.name}" data-file-type="${file.type}" ${!isSupported ? 'disabled' : ''}>View</button></td>
       `;
       
       filesTableBody.appendChild(row);
     });
 
     // Add click handlers to view buttons
-    const viewButtons = filesTableBody.querySelectorAll('.view-button:not([disabled])');
+    const viewButtons = filesTableBody.querySelectorAll('button:not([disabled])');
     viewButtons.forEach(button => {
       button.addEventListener('click', async (e) => {
         const btn = e.target as HTMLButtonElement;
@@ -216,36 +335,58 @@ async function loadExampleFile(filePath: string, fileName: string, fileType: str
 function showMessage(message: string, isError = false): void {
   messageContainer.innerHTML = '';
   const messageDiv = document.createElement('div');
-  messageDiv.className = isError ? 'error-message' : 'success-message';
+  messageDiv.className = `message ${isError ? 'error' : 'success'}`;
   messageDiv.textContent = message;
   messageContainer.appendChild(messageDiv);
+  
+  // Auto-hide non-error messages after 3 seconds
+  if (!isError) {
+    setTimeout(() => {
+      if (messageContainer.contains(messageDiv)) {
+        messageDiv.style.transition = 'opacity 0.5s ease-out';
+        messageDiv.style.opacity = '0';
+        setTimeout(() => {
+          if (messageContainer.contains(messageDiv)) {
+            messageContainer.removeChild(messageDiv);
+          }
+        }, 500);
+      }
+    }, 3000);
+  }
 }
 
 // Handle file viewing
 async function viewFile(file: File): Promise<void> {
   try {
     messageContainer.innerHTML = '';
-    viewerContainer.classList.remove('empty');
+    viewerContainer.classList.remove('viewer-container');
+    viewerContainer.classList.add('viewer-container');
+    viewerContainer.innerHTML = ''; // Clear the no-file message
     
     const result = await viewer.view(file, {
       container: viewerContainer,
-      showFileInfo: true,
-      maxWidth: 800,
-      maxHeight: 600
+      showFileInfo: true
     });
 
     if (result.success) {
       showMessage(`Successfully loaded: ${file.name}`);
+      
+      // Store reference to the current viewer instance for pagination
+      // Access the currentViewer property which is the active ImageViewer instance
+      currentImageViewer = (viewer as any).currentViewer;
+      
     } else {
       showMessage(`Error: ${result.error}`, true);
-      viewerContainer.classList.add('empty');
-      viewerContainer.innerHTML = 'Select a file to view it here';
+      viewerContainer.innerHTML = '<div class="no-file-message text-center text-gray-500 text-lg"><p>📷 Select a file from the list to view it here</p></div>';
+      currentImageViewer = null;
+      hidePaginationControls();
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     showMessage(`Unexpected error: ${errorMessage}`, true);
-    viewerContainer.classList.add('empty');
-    viewerContainer.innerHTML = 'Select a file to view it here';
+    viewerContainer.innerHTML = '<div class="no-file-message text-center text-gray-500 text-lg"><p>📷 Select a file from the list to view it here</p></div>';
+    currentImageViewer = null;
+    hidePaginationControls();
   }
 }
 
@@ -297,6 +438,7 @@ function init(): void {
   displaySupportedTypes();
   loadExampleFiles();
   setupEventListeners();
+  setupPaginationControls();
 }
 
 // Start the application when DOM is loaded

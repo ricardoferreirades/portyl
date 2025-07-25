@@ -1,5 +1,6 @@
 import { FileViewer, ViewerOptions, ViewerResult } from '../types';
 import { FileUtils } from '../utils';
+import * as UTIF from 'utif';
 
 interface ImageViewerState {
   currentPage: number;
@@ -7,6 +8,7 @@ interface ImageViewerState {
   imageData: ImageData | null;
   canvas: HTMLCanvasElement | null;
   originalImage: HTMLImageElement | null;
+  tiffData: any[] | null; // Decoded TIFF pages
 }
 
 /**
@@ -14,13 +16,19 @@ interface ImageViewerState {
  */
 export class ImageViewer implements FileViewer {
   private currentElement?: HTMLElement;
+  private eventTarget?: EventTarget;
   private state: ImageViewerState = {
     currentPage: 0,
     totalPages: 1,
     imageData: null,
     canvas: null,
     originalImage: null,
+    tiffData: null,
   };
+
+  constructor(eventTarget?: EventTarget) {
+    this.eventTarget = eventTarget;
+  }
 
   /**
    * Check if this viewer can handle the given file
@@ -75,17 +83,37 @@ export class ImageViewer implements FileViewer {
       // No need for setTimeout since we're calling resizeCanvasToContainer after DOM insertion
 
       // Remove HTML file info since it's now rendered on canvas
-      // Add page navigation for multi-page TIFFs (position it after info)
-      if (isTiff && this.state.totalPages > 1) {
-        const pageControls = this.createPageControls();
-        viewerContainer.appendChild(pageControls);
-      }
-
+      // Page navigation for multi-page TIFFs will be handled externally
+      
       // Clear the container and add our viewer
       options.container.innerHTML = '';
       options.container.appendChild(viewerContainer);
 
       this.currentElement = viewerContainer;
+
+      // Dispatch event for external handling of pagination controls
+      if (isTiff && this.state.totalPages > 1) {
+        const paginationEvent = new CustomEvent('pagination-available', {
+          detail: {
+            currentPage: this.state.currentPage + 1,
+            totalPages: this.state.totalPages,
+            controls: this.createPageControls()
+          }
+        });
+        if (this.eventTarget) {
+          this.eventTarget.dispatchEvent(paginationEvent);
+        } else {
+          options.container.dispatchEvent(paginationEvent);
+        }
+      } else {
+        // Dispatch event to hide pagination
+        const paginationEvent = new CustomEvent('pagination-hide');
+        if (this.eventTarget) {
+          this.eventTarget.dispatchEvent(paginationEvent);
+        } else {
+          options.container.dispatchEvent(paginationEvent);
+        }
+      }
 
       return {
         success: true,
@@ -127,17 +155,146 @@ export class ImageViewer implements FileViewer {
   }
 
   /**
-   * Render TIFF to canvas (using browser's native support)
+   * Render TIFF to canvas using UTIF decoder
    */
   private async renderTiffToCanvas(file: File, canvas: HTMLCanvasElement, fileInfo?: any, showFileInfo: boolean = false): Promise<void> {
     try {
-      // For now, treat TIFF like regular images and let the browser handle it
-      // In the future, we could implement proper TIFF parsing for multi-page support
-      await this.renderImageToCanvas(file, canvas, fileInfo, false); // Don't draw info here, do it later
-      this.state.totalPages = 1; // For now, assume single page
+      // Read file as ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Decode TIFF using UTIF
+      const ifds = UTIF.decode(arrayBuffer);
+      
+      if (!ifds || ifds.length === 0) {
+        throw new Error('No valid TIFF pages found');
+      }
+
+      // Decode all pages
+      ifds.forEach(page => {
+        UTIF.decodeImage(arrayBuffer, page);
+      });
+
+      // Store TIFF data for page navigation
+      this.state.tiffData = ifds;
+      this.state.totalPages = ifds.length;
+      this.state.currentPage = 0;
+
+      // Set up canvas dimensions based on container (once and maintain throughout navigation)
+      this.setupCanvasForTiff(canvas);
+
+      // Render the first page
+      await this.renderTiffPage(0, canvas, fileInfo, showFileInfo);
+
     } catch (error) {
       throw new Error(`TIFF rendering failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Set up canvas dimensions for TIFF viewing (called once, dimensions maintained)
+   */
+  private setupCanvasForTiff(canvas: HTMLCanvasElement): void {
+    // Get container dimensions
+    const container = canvas.parentElement;
+    if (!container) {
+      console.warn('Canvas has no parent container, using default dimensions');
+      return;
+    }
+
+    // Get available container dimensions
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = Math.max(containerRect.width || 800, 400);
+    const containerHeight = Math.max(containerRect.height || 600, 300);
+    
+    // Make canvas fill the entire parent container
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
+    // Set canvas internal resolution to match container size (this stays fixed)
+    canvas.width = containerWidth;
+    canvas.height = containerHeight;
+  }
+
+  /**
+   * Render a specific TIFF page to canvas
+   */
+  private async renderTiffPage(pageIndex: number, canvas: HTMLCanvasElement, fileInfo?: any, showFileInfo: boolean = false): Promise<void> {
+    if (!this.state.tiffData || pageIndex >= this.state.tiffData.length || pageIndex < 0) {
+      throw new Error('Invalid TIFF page index');
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
+    }
+
+    const ifd = this.state.tiffData[pageIndex];
+    
+    // Convert to ImageData
+    const rgba = UTIF.toRGBA8(ifd);
+    const imageData = new ImageData(new Uint8ClampedArray(rgba), ifd.width, ifd.height);
+    
+    // Store image data
+    this.state.imageData = imageData;
+    this.state.currentPage = pageIndex;
+
+    // Create a temporary canvas to convert ImageData to HTMLImageElement for consistent rendering
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = ifd.width;
+    tempCanvas.height = ifd.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    if (!tempCtx) {
+      throw new Error('Could not create temporary canvas context');
+    }
+
+    // Put image data on temporary canvas
+    tempCtx.putImageData(imageData, 0, 0);
+
+    // Create an image from the temporary canvas
+    const img = new Image();
+    
+    return new Promise<void>((resolve, reject) => {
+      img.onload = () => {
+        this.state.originalImage = img;
+        
+        // Clear the canvas first
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Calculate how to center and scale the image within the existing canvas dimensions
+        const imageAspectRatio = img.naturalWidth / img.naturalHeight;
+        const canvasAspectRatio = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, drawX, drawY;
+        
+        if (imageAspectRatio > canvasAspectRatio) {
+          // Image is wider than canvas - fit to width, center vertically
+          drawWidth = canvas.width;
+          drawHeight = canvas.width / imageAspectRatio;
+          drawX = 0;
+          drawY = (canvas.height - drawHeight) / 2;
+        } else {
+          // Image is taller than canvas - fit to height, center horizontally
+          drawHeight = canvas.height;
+          drawWidth = canvas.height * imageAspectRatio;
+          drawX = (canvas.width - drawWidth) / 2;
+          drawY = 0;
+        }
+
+        // Draw image centered and scaled to fit within existing canvas dimensions
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+        // Draw file info overlay on canvas if requested
+        if (showFileInfo && fileInfo) {
+          this.drawFileInfoOnCanvas(ctx, canvas, fileInfo);
+        }
+        
+        resolve();
+      };
+      
+      img.onerror = () => reject(new Error('Failed to create image from TIFF data'));
+      img.src = tempCanvas.toDataURL();
+    });
   }
 
   /**
@@ -357,6 +514,7 @@ export class ImageViewer implements FileViewer {
 
     const prevButton = document.createElement('button');
     prevButton.textContent = '◀ Previous';
+    prevButton.className = 'nav-prev-btn';
     prevButton.style.padding = '6px 12px';
     prevButton.style.backgroundColor = '#007bff';
     prevButton.style.color = 'white';
@@ -366,14 +524,31 @@ export class ImageViewer implements FileViewer {
     prevButton.style.fontSize = '12px';
     prevButton.disabled = this.state.currentPage === 0;
 
+    // Page input for jumping to specific page
+    const pageInput = document.createElement('input');
+    pageInput.type = 'number';
+    pageInput.min = '1';
+    pageInput.max = this.state.totalPages.toString();
+    pageInput.value = (this.state.currentPage + 1).toString();
+    pageInput.className = 'page-input';
+    pageInput.style.width = '50px';
+    pageInput.style.padding = '4px 6px';
+    pageInput.style.border = '1px solid #ccc';
+    pageInput.style.borderRadius = '4px';
+    pageInput.style.textAlign = 'center';
+    pageInput.style.fontSize = '12px';
+    pageInput.style.backgroundColor = 'white';
+
     const pageInfo = document.createElement('span');
-    pageInfo.textContent = `Page ${this.state.currentPage + 1} of ${this.state.totalPages}`;
+    pageInfo.textContent = `of ${this.state.totalPages}`;
+    pageInfo.className = 'page-info';
     pageInfo.style.fontWeight = 'bold';
     pageInfo.style.color = 'white';
     pageInfo.style.fontSize = '13px';
 
     const nextButton = document.createElement('button');
     nextButton.textContent = 'Next ▶';
+    nextButton.className = 'nav-next-btn';
     nextButton.style.padding = '6px 12px';
     nextButton.style.backgroundColor = '#007bff';
     nextButton.style.color = 'white';
@@ -386,8 +561,34 @@ export class ImageViewer implements FileViewer {
     // Event listeners for navigation
     prevButton.addEventListener('click', () => this.goToPreviousPage());
     nextButton.addEventListener('click', () => this.goToNextPage());
+    
+    // Event listener for page input
+    pageInput.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      const pageNum = parseInt(target.value);
+      if (pageNum >= 1 && pageNum <= this.state.totalPages) {
+        this.goToPage(pageNum - 1);
+      } else {
+        // Reset to current page if invalid
+        target.value = (this.state.currentPage + 1).toString();
+      }
+    });
+
+    // Also handle Enter key
+    pageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        pageInput.blur(); // Trigger change event
+      }
+    });
+
+    const pageLabel = document.createElement('span');
+    pageLabel.textContent = 'Page ';
+    pageLabel.style.color = 'white';
+    pageLabel.style.fontSize = '13px';
 
     controlsContainer.appendChild(prevButton);
+    controlsContainer.appendChild(pageLabel);
+    controlsContainer.appendChild(pageInput);
     controlsContainer.appendChild(pageInfo);
     controlsContainer.appendChild(nextButton);
 
@@ -397,30 +598,137 @@ export class ImageViewer implements FileViewer {
   /**
    * Navigate to previous page
    */
-  private goToPreviousPage(): void {
+  private async goToPreviousPage(): Promise<void> {
     if (this.state.currentPage > 0) {
       this.state.currentPage--;
-      this.refreshCurrentPage();
+      await this.refreshCurrentPage();
     }
   }
 
   /**
    * Navigate to next page
    */
-  private goToNextPage(): void {
+  private async goToNextPage(): Promise<void> {
     if (this.state.currentPage < this.state.totalPages - 1) {
       this.state.currentPage++;
-      this.refreshCurrentPage();
+      await this.refreshCurrentPage();
+    }
+  }
+
+  /**
+   * Navigate to specific page
+   */
+  private async goToPage(pageIndex: number): Promise<void> {
+    if (pageIndex >= 0 && pageIndex < this.state.totalPages && pageIndex !== this.state.currentPage) {
+      this.state.currentPage = pageIndex;
+      await this.refreshCurrentPage();
     }
   }
 
   /**
    * Refresh the current page display
    */
-  private refreshCurrentPage(): void {
-    // For now, this is a placeholder for multi-page TIFF support
-    // In a full implementation, this would load and render the specific page
-    console.log(`Showing page ${this.state.currentPage + 1} of ${this.state.totalPages}`);
+  private async refreshCurrentPage(): Promise<void> {
+    if (!this.state.canvas) {
+      console.warn('No canvas available for page refresh');
+      return;
+    }
+
+    if (this.state.tiffData && this.state.tiffData.length > 0) {
+      // TIFF file - render the specific page with file info
+      const fileInfo = {
+        name: 'TIFF Document',
+        size: 'Multi-page',
+        type: 'image/tiff',
+        dimensions: `Page ${this.state.currentPage + 1}/${this.state.totalPages}`
+      };
+      
+      await this.renderTiffPage(this.state.currentPage, this.state.canvas, fileInfo, true);
+      
+      // Update page navigation display
+      this.updatePageNavigation();
+    } else {
+      // Regular image file - no page navigation needed
+      console.log(`Showing page ${this.state.currentPage + 1} of ${this.state.totalPages}`);
+    }
+    
+    // Dispatch event to update external pagination controls for any multi-page file
+    if (this.state.totalPages > 1) {
+      const paginationEvent = new CustomEvent('pagination-update', {
+        detail: {
+          currentPage: this.state.currentPage + 1,
+          totalPages: this.state.totalPages
+        }
+      });
+      if (this.eventTarget) {
+        this.eventTarget.dispatchEvent(paginationEvent);
+      } else if (this.currentElement) {
+        this.currentElement.dispatchEvent(paginationEvent);
+      }
+    }
+  }
+
+  /**
+   * Get current pagination info
+   */
+  public getPaginationInfo(): { currentPage: number; totalPages: number; canGoNext: boolean; canGoPrev: boolean } | null {
+    if (this.state.totalPages <= 1) {
+      return null;
+    }
+    
+    return {
+      currentPage: this.state.currentPage + 1,
+      totalPages: this.state.totalPages,
+      canGoNext: this.state.currentPage < this.state.totalPages - 1,
+      canGoPrev: this.state.currentPage > 0
+    };
+  }
+
+  /**
+   * Public method to navigate to next page (for external controls)
+   */
+  public async nextPage(): Promise<void> {
+    await this.goToNextPage();
+  }
+
+  /**
+   * Public method to navigate to previous page (for external controls)
+   */
+  public async previousPage(): Promise<void> {
+    await this.goToPreviousPage();
+  }
+
+  /**
+   * Public method to jump to specific page (for external controls)
+   */
+  public async jumpToPage(pageNumber: number): Promise<void> {
+    await this.goToPage(pageNumber - 1);
+  }
+
+  /**
+   * Update page navigation display
+   */
+  private updatePageNavigation(): void {
+    const pageInput = this.currentElement?.querySelector('.page-input') as HTMLInputElement;
+    const pageInfo = this.currentElement?.querySelector('.page-info');
+    const prevBtn = this.currentElement?.querySelector('.nav-prev-btn') as HTMLButtonElement;
+    const nextBtn = this.currentElement?.querySelector('.nav-next-btn') as HTMLButtonElement;
+    
+    if (pageInput) {
+      pageInput.value = (this.state.currentPage + 1).toString();
+    }
+    
+    if (pageInfo) {
+      pageInfo.textContent = `of ${this.state.totalPages}`;
+    }
+    
+    if (prevBtn) {
+      prevBtn.disabled = this.state.currentPage === 0;
+    }
+    
+    if (nextBtn) {
+      nextBtn.disabled = this.state.currentPage === this.state.totalPages - 1;
+    }
   }
 
   /**
@@ -453,6 +761,7 @@ export class ImageViewer implements FileViewer {
         imageData: null,
         canvas: null,
         originalImage: null,
+        tiffData: null,
       };
 
       this.currentElement = undefined;

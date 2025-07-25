@@ -5,11 +5,12 @@ import { ImageViewer } from './viewers/ImageViewer';
 /**
  * Main browser file viewer class
  */
-export class BrowserFileViewer {
+export class BrowserFileViewer extends EventTarget {
   private viewers: Map<FileType, FileViewer>;
   private currentViewer?: FileViewer;
 
   constructor() {
+    super();
     this.viewers = new Map();
     this.initializeViewers();
   }
@@ -19,7 +20,7 @@ export class BrowserFileViewer {
    */
   private initializeViewers(): void {
     // Register image viewer
-    this.viewers.set(FileType.IMAGE, new ImageViewer());
+    this.viewers.set(FileType.IMAGE, new ImageViewer(this));
     
     // Future: Register other viewers
     // this.viewers.set(FileType.VIDEO, new VideoViewer());
