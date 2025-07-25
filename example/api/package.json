@@ -1,0 +1,33 @@
+{
+  "name": "browser-file-viewer-api",
+  "version": "1.0.0",
+  "description": "API server for browser file viewer example",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "api",
+    "file-server",
+    "express",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "nodemon": "^3.0.0"
+  }
+}
