@@ -15,11 +15,7 @@ export type {
   ViewerConfig, 
   LoadResult, 
   RenderResult, 
-  FileInfo,
-  // Legacy types (deprecated)
-  ViewerOptions,
-  ViewerResult,
-  FileViewer
+  FileInfo
 } from './types';
 
 export { FileType } from './types';
