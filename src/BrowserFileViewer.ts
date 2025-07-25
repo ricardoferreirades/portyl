@@ -1,81 +1,195 @@
-import { FileViewer, ViewerOptions, ViewerResult, FileType } from './types';
+import { ViewerConfig, LoadResult, RenderResult, FileInfo } from './types';
 import { FileUtils } from './utils';
-import { ImageViewer } from './viewers/ImageViewer';
+import { FileProcessor, ProcessorState, ImagePage } from './core/processors/FileProcessor';
+import { ImageProcessor } from './core/processors/ImageProcessor';
+import { Renderer, RenderOptions, RenderTarget } from './core/renderers/Renderer';
+import { CanvasRenderer } from './core/renderers/CanvasRenderer';
 
 /**
- * Main browser file viewer class
+ * Main browser file viewer class - Framework agnostic, pure data processing
+ * Breaking changes: New API focused on data processing with optional rendering
  */
 export class BrowserFileViewer extends EventTarget {
-  private viewers: Map<FileType, FileViewer>;
-  private currentViewer?: FileViewer;
+  private processor?: FileProcessor;
+  private config: ViewerConfig;
+  private defaultRenderer: Renderer;
 
-  constructor() {
+  constructor(config: ViewerConfig = {}) {
     super();
-    this.viewers = new Map();
-    this.initializeViewers();
-  }
-
-  /**
-   * Initialize all available file viewers
-   */
-  private initializeViewers(): void {
-    // Register image viewer
-    this.viewers.set(FileType.IMAGE, new ImageViewer(this));
+    this.config = {
+      maxDimensions: { width: 1920, height: 1080 },
+      showFileInfo: false,
+      enablePagination: true,
+      preloadPages: 1,
+      preserveAspectRatio: true,
+      backgroundColor: 'transparent',
+      ...config
+    };
     
-    // Future: Register other viewers
-    // this.viewers.set(FileType.VIDEO, new VideoViewer());
-    // this.viewers.set(FileType.AUDIO, new AudioViewer());
+    // Create default renderer
+    this.defaultRenderer = config.renderer || new CanvasRenderer();
+    
+    // Set up processor event forwarding
+    this.setupEventForwarding();
   }
 
   /**
-   * Check if a file can be viewed
+   * Check if a file can be processed
    */
-  canView(file: File): boolean {
-    const fileType = FileUtils.getFileType(file);
-    if (!fileType) return false;
-
-    const viewer = this.viewers.get(fileType);
-    return viewer ? viewer.canHandle(file) : false;
+  canHandle(file: File): boolean {
+    const processor = this.createProcessor(file);
+    return processor ? processor.canHandle(file) : false;
   }
 
   /**
-   * View a file in the specified container
+   * Load and process a file (pure data processing, no rendering)
    */
-  async view(file: File, options: ViewerOptions): Promise<ViewerResult> {
+  async loadFile(file: File): Promise<LoadResult> {
     try {
-      // Clean up previous viewer
+      // Clean up previous processor
       this.destroy();
 
-      // Validate inputs
+      // Validate file
       if (!file) {
         throw new Error('File is required');
       }
 
-      if (!options.container) {
-        throw new Error('Container element is required');
-      }
-
-      // Check if file can be viewed
-      if (!this.canView(file)) {
+      // Get appropriate processor
+      const processor = this.createProcessor(file);
+      if (!processor) {
         throw new Error(`Unsupported file type: ${file.type}`);
       }
 
-      // Get the appropriate viewer
-      const fileType = FileUtils.getFileType(file)!;
-      const viewer = this.viewers.get(fileType)!;
+      this.processor = processor;
 
-      // Render the file
-      const result = await viewer.render(file, options);
-      
-      if (result.success) {
-        this.currentViewer = viewer;
-      }
+      // Set up event forwarding for this processor
+      this.setupProcessorEvents(this.processor);
 
-      return result;
+      // Load the file
+      await this.processor.loadFile(file);
+
+      const state = this.processor.getState();
+      const fileInfo = FileUtils.getFileInfo(file);
+
+      return {
+        success: true,
+        pageCount: state.totalPages,
+        fileInfo
+      };
+
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Dispatch error event
+      this.dispatchEvent(new CustomEvent('error', { 
+        detail: { error: errorMessage } 
+      }));
+
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: errorMessage
+      };
+    }
+  }
+
+  /**
+   * Get current processor state
+   */
+  getState(): ProcessorState | null {
+    return this.processor?.getState() || null;
+  }
+
+  /**
+   * Get all pages
+   */
+  getPages(): ImagePage[] {
+    return this.processor?.getPages() || [];
+  }
+
+  /**
+   * Get current page
+   */
+  getCurrentPage(): ImagePage | null {
+    return this.processor?.getCurrentPage() || null;
+  }
+
+  /**
+   * Navigate to specific page (0-based index)
+   */
+  async navigateToPage(index: number): Promise<void> {
+    if (!this.processor) {
+      throw new Error('No file loaded');
+    }
+    await this.processor.navigateToPage(index);
+  }
+
+  /**
+   * Navigate to next page
+   */
+  async nextPage(): Promise<void> {
+    if (!this.processor) {
+      throw new Error('No file loaded');
+    }
+    await this.processor.nextPage();
+  }
+
+  /**
+   * Navigate to previous page
+   */
+  async previousPage(): Promise<void> {
+    if (!this.processor) {
+      throw new Error('No file loaded');
+    }
+    await this.processor.previousPage();
+  }
+
+  /**
+   * Jump to specific page (1-based index for UI)
+   */
+  async jumpToPage(pageNumber: number): Promise<void> {
+    await this.navigateToPage(pageNumber - 1); // Convert to 0-based
+  }
+
+  /**
+   * Get pagination information
+   */
+  getPaginationInfo(): { currentPage: number; totalPages: number; canGoNext: boolean; canGoPrevious: boolean } | null {
+    return this.processor?.getPaginationInfo() || null;
+  }
+
+  /**
+   * Render current page to a target (optional rendering)
+   */
+  async renderToTarget<T extends RenderTarget>(
+    target: T, 
+    options?: RenderOptions,
+    renderer?: Renderer
+  ): Promise<RenderResult> {
+    try {
+      const currentPage = this.getCurrentPage();
+      if (!currentPage) {
+        throw new Error('No page to render');
+      }
+
+      const activeRenderer = renderer || this.defaultRenderer;
+      const renderOptions: RenderOptions = {
+        maxWidth: this.config.maxDimensions?.width,
+        maxHeight: this.config.maxDimensions?.height,
+        showFileInfo: this.config.showFileInfo,
+        preserveAspectRatio: this.config.preserveAspectRatio,
+        backgroundColor: this.config.backgroundColor,
+        ...options
+      };
+
+      await activeRenderer.render(currentPage, target, renderOptions);
+
+      return { success: true };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown rendering error';
+      return {
+        success: false,
+        error: errorMessage
       };
     }
   }
@@ -84,54 +198,111 @@ export class BrowserFileViewer extends EventTarget {
    * Get supported file types
    */
   getSupportedTypes(): string[] {
-    const supportedTypes: string[] = [];
-    
-    // Add image types
-    if (this.viewers.has(FileType.IMAGE)) {
-      supportedTypes.push(
-        'image/jpeg',
-        'image/jpg', 
-        'image/png',
-        'image/gif',
-        'image/webp',
-        'image/svg+xml',
-        'image/bmp',
-        'image/tiff',
-        'image/tif'
-      );
-    }
-
-    return supportedTypes;
+    return [
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'image/bmp',
+      'image/tiff',
+      'image/tif'
+    ];
   }
 
   /**
-   * Get file information
+   * Get file information (utility method)
    */
-  getFileInfo(file: File) {
+  getFileInfo(file: File): FileInfo {
     return FileUtils.getFileInfo(file);
   }
 
   /**
-   * Format file size
+   * Format file size (utility method)
    */
   formatFileSize(bytes: number): string {
     return FileUtils.formatFileSize(bytes);
   }
 
   /**
-   * Clean up resources
+   * Update configuration
    */
-  destroy(): void {
-    if (this.currentViewer && this.currentViewer.destroy) {
-      this.currentViewer.destroy();
+  updateConfig(newConfig: Partial<ViewerConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    
+    if (newConfig.renderer) {
+      this.defaultRenderer = newConfig.renderer;
     }
-    this.currentViewer = undefined;
   }
 
   /**
-   * Create a new instance with default options
+   * Clean up resources
    */
-  static create(): BrowserFileViewer {
-    return new BrowserFileViewer();
+  destroy(): void {
+    if (this.processor) {
+      this.processor.destroy();
+      this.processor = undefined;
+    }
+  }
+
+  /**
+   * Create appropriate processor for file type
+   */
+  private createProcessor(file: File): FileProcessor | null {
+    if (file.type.startsWith('image/') || this.isTiffFile(file)) {
+      return new ImageProcessor();
+    }
+    
+    // Future: Add other processors
+    // if (file.type.startsWith('video/')) return new VideoProcessor();
+    // if (file.type === 'application/pdf') return new PDFProcessor();
+    
+    return null;
+  }
+
+  /**
+   * Set up event forwarding from processor to main viewer
+   */
+  private setupEventForwarding(): void {
+    // This will be called for each new processor
+  }
+
+  /**
+   * Set up events for specific processor instance
+   */
+  private setupProcessorEvents(processor: FileProcessor): void {
+    processor.addEventListener('stateChange', (event: any) => {
+      this.dispatchEvent(new CustomEvent('stateChange', { detail: event.detail }));
+    });
+
+    processor.addEventListener('loaded', (event: any) => {
+      this.dispatchEvent(new CustomEvent('loaded', { detail: event.detail }));
+    });
+
+    processor.addEventListener('pageChanged', (event: any) => {
+      this.dispatchEvent(new CustomEvent('pageChanged', { detail: event.detail }));
+    });
+
+    processor.addEventListener('error', (event: any) => {
+      this.dispatchEvent(new CustomEvent('error', { detail: event.detail }));
+    });
+  }
+
+  /**
+   * Check if file is TIFF
+   */
+  private isTiffFile(file: File): boolean {
+    return file.type === 'image/tiff' || 
+           file.type === 'image/tif' || 
+           file.name.toLowerCase().endsWith('.tiff') || 
+           file.name.toLowerCase().endsWith('.tif');
+  }
+
+  /**
+   * Create a new instance with configuration
+   */
+  static create(config?: ViewerConfig): BrowserFileViewer {
+    return new BrowserFileViewer(config);
   }
 }
