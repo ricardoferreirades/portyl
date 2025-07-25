@@ -1,3 +1,6 @@
+import { ProcessorStateManager, ProcessorState } from '../state/ProcessorStateManager';
+import { Unsubscribe } from '../state/StateManager';
+
 /**
  * Core data structures for file processing
  */
@@ -14,23 +17,23 @@ export interface ImagePage {
   metadata?: Record<string, any>;
 }
 
-export interface ProcessorState {
-  currentPage: number;
-  totalPages: number;
-  isLoading: boolean;
-  error?: string;
-}
+// Re-export ProcessorState for backward compatibility
+export { ProcessorState } from '../state/ProcessorStateManager';
 
 /**
  * Abstract base class for file processors
- * Framework-agnostic file processing logic
+ * Framework-agnostic file processing logic with pure state management
  */
-export abstract class FileProcessor extends EventTarget {
-  protected state: ProcessorState = {
-    currentPage: 0,
-    totalPages: 0,
-    isLoading: false
-  };
+export abstract class FileProcessor {
+  protected stateManager: ProcessorStateManager;
+  private subscriptions: Unsubscribe[] = [];
+
+  constructor(stateManager?: ProcessorStateManager) {
+    this.stateManager = stateManager || new ProcessorStateManager();
+    
+    // Set up internal event forwarding for backward compatibility
+    this.setupEventForwarding();
+  }
 
   abstract canHandle(file: File): boolean;
   abstract loadFile(file: File): Promise<void>;
@@ -39,18 +42,26 @@ export abstract class FileProcessor extends EventTarget {
   abstract navigateToPage(index: number): Promise<void>;
   
   /**
-   * Get current processor state
+   * Get current processor state (immutable)
    */
   getState(): ProcessorState {
-    return { ...this.state };
+    return this.stateManager.getState();
+  }
+
+  /**
+   * Subscribe to state changes
+   */
+  subscribe(listener: (current: ProcessorState, previous: ProcessorState) => void): Unsubscribe {
+    return this.stateManager.subscribe(listener);
   }
 
   /**
    * Navigate to next page
    */
   async nextPage(): Promise<void> {
-    if (this.state.currentPage < this.state.totalPages - 1) {
-      await this.navigateToPage(this.state.currentPage + 1);
+    const state = this.stateManager.getState();
+    if (state.currentPage < state.totalPages - 1) {
+      await this.navigateToPage(state.currentPage + 1);
     }
   }
 
@@ -58,8 +69,9 @@ export abstract class FileProcessor extends EventTarget {
    * Navigate to previous page
    */
   async previousPage(): Promise<void> {
-    if (this.state.currentPage > 0) {
-      await this.navigateToPage(this.state.currentPage - 1);
+    const state = this.stateManager.getState();
+    if (state.currentPage > 0) {
+      await this.navigateToPage(state.currentPage - 1);
     }
   }
 
@@ -67,36 +79,103 @@ export abstract class FileProcessor extends EventTarget {
    * Check if can go to next page
    */
   canGoNext(): boolean {
-    return this.state.currentPage < this.state.totalPages - 1;
+    const state = this.stateManager.getState();
+    return state.currentPage < state.totalPages - 1;
   }
 
   /**
    * Check if can go to previous page
    */
   canGoPrevious(): boolean {
-    return this.state.currentPage > 0;
+    const state = this.stateManager.getState();
+    return state.currentPage > 0;
   }
 
   /**
    * Get pagination info
    */
   getPaginationInfo(): { currentPage: number; totalPages: number; canGoNext: boolean; canGoPrevious: boolean } | null {
-    if (this.state.totalPages <= 1) {
-      return null;
-    }
+    return this.stateManager.getPaginationInfo();
+  }
 
-    return {
-      currentPage: this.state.currentPage + 1, // 1-based for UI
-      totalPages: this.state.totalPages,
-      canGoNext: this.canGoNext(),
-      canGoPrevious: this.canGoPrevious()
-    };
+  /**
+   * Setup event forwarding for backward compatibility with EventTarget pattern
+   */
+  private setupEventForwarding(): void {
+    // Forward state changes as events for backward compatibility
+    this.subscriptions.push(
+      this.stateManager.subscribe((current, previous) => {
+        // Dispatch state change event
+        if (this.eventTarget) {
+          this.eventTarget.dispatchEvent(new CustomEvent('stateChange', {
+            detail: { current, previous }
+          }));
+        }
+
+        // Dispatch specific events for major state changes
+        if (current.isLoading !== previous.isLoading) {
+          const eventType = current.isLoading ? 'loadingStart' : 'loadingEnd';
+          if (this.eventTarget) {
+            this.eventTarget.dispatchEvent(new CustomEvent(eventType, {
+              detail: current
+            }));
+          }
+        }
+
+        if (current.currentPage !== previous.currentPage) {
+          if (this.eventTarget) {
+            this.eventTarget.dispatchEvent(new CustomEvent('pageChanged', {
+              detail: {
+                currentPage: current.currentPage,
+                totalPages: current.totalPages
+              }
+            }));
+          }
+        }
+
+        if (current.error && current.error !== previous.error) {
+          if (this.eventTarget) {
+            this.eventTarget.dispatchEvent(new CustomEvent('error', {
+              detail: { error: current.error }
+            }));
+          }
+        }
+
+        if (!current.isLoading && previous.isLoading && !current.error) {
+          if (this.eventTarget) {
+            this.eventTarget.dispatchEvent(new CustomEvent('loaded', {
+              detail: {
+                totalPages: current.totalPages,
+                state: current
+              }
+            }));
+          }
+        }
+      })
+    );
+  }
+
+  /**
+   * Set event target for backward compatibility
+   */
+  private eventTarget?: EventTarget;
+
+  setEventTarget(eventTarget: EventTarget): void {
+    this.eventTarget = eventTarget;
   }
 
   /**
    * Clean up resources
    */
   destroy(): void {
-    // Base cleanup - can be overridden
+    // Unsubscribe from all state changes
+    this.subscriptions.forEach(unsubscribe => unsubscribe());
+    this.subscriptions = [];
+    
+    // Destroy state manager
+    this.stateManager.destroy();
+    
+    // Clear event target reference
+    this.eventTarget = undefined;
   }
 }

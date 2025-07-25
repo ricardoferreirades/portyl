@@ -1,22 +1,30 @@
 import { FileProcessor, ImagePage, ImageData } from './FileProcessor';
+import { ProcessorStateManager } from '../state/ProcessorStateManager';
 import * as UTIF from 'utif';
 
 /**
  * Image file processor - handles all image formats including TIFF
- * Pure data processing, no DOM dependencies
+ * Pure data processing with immutable state management
  */
 export class ImageProcessor extends FileProcessor {
   private pages: ImagePage[] = [];
   private originalFile?: File;
+
+  constructor(stateManager?: ProcessorStateManager) {
+    super(stateManager);
+  }
 
   canHandle(file: File): boolean {
     return file.type.startsWith('image/') || this.isTiffFile(file);
   }
 
   async loadFile(file: File): Promise<void> {
-    this.state.isLoading = true;
-    this.state.error = undefined;
-    this.dispatchEvent(new CustomEvent('stateChange', { detail: this.getState() }));
+    // Start loading state
+    this.stateManager.startLoading({
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
 
     try {
       this.originalFile = file;
@@ -28,21 +36,12 @@ export class ImageProcessor extends FileProcessor {
         await this.loadRegularImage(file);
       }
 
-      this.state.isLoading = false;
-      this.state.currentPage = 0;
-      this.state.totalPages = this.pages.length;
-      
-      this.dispatchEvent(new CustomEvent('loaded', { 
-        detail: { 
-          pages: this.pages,
-          state: this.getState()
-        } 
-      }));
+      // Finish loading state
+      this.stateManager.finishLoading(this.pages.length);
       
     } catch (error) {
-      this.state.error = error instanceof Error ? error.message : 'Unknown error';
-      this.state.isLoading = false;
-      this.dispatchEvent(new CustomEvent('error', { detail: this.state.error }));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.stateManager.setError(errorMessage);
       throw error;
     }
   }
@@ -52,26 +51,21 @@ export class ImageProcessor extends FileProcessor {
   }
 
   getCurrentPage(): ImagePage | null {
-    return this.pages[this.state.currentPage] || null;
+    const state = this.stateManager.getState();
+    return this.pages[state.currentPage] || null;
+  }
+
+  async goToPage(index: number): Promise<void> {
+    const state = this.stateManager.getState();
+    if (index < 0 || index >= state.totalPages) {
+      throw new Error(`Page index ${index} out of range (0-${state.totalPages - 1})`);
+    }
+
+    this.stateManager.navigateToPage(index);
   }
 
   async navigateToPage(index: number): Promise<void> {
-    if (index < 0 || index >= this.state.totalPages) {
-      throw new Error(`Page index ${index} out of range (0-${this.state.totalPages - 1})`);
-    }
-
-    const previousPage = this.state.currentPage;
-    this.state.currentPage = index;
-    
-    this.dispatchEvent(new CustomEvent('pageChanged', { 
-      detail: { 
-        currentPage: index,
-        previousPage,
-        totalPages: this.state.totalPages,
-        page: this.getCurrentPage(),
-        paginationInfo: this.getPaginationInfo()
-      } 
-    }));
+    await this.goToPage(index);
   }
 
   /**
@@ -176,10 +170,6 @@ export class ImageProcessor extends FileProcessor {
   destroy(): void {
     this.pages = [];
     this.originalFile = undefined;
-    this.state = {
-      currentPage: 0,
-      totalPages: 0,
-      isLoading: false
-    };
+    this.stateManager.resetState();
   }
 }
