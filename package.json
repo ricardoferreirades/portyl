@@ -51,9 +51,12 @@
   },
   "homepage": "https://github.com/your-username/browser-file-viewer#readme",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.1.0",
+    "@types/utif": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "concurrently": "^9.1.0",
@@ -70,5 +73,8 @@
     "tslib": "^2.8.1",
     "typescript": "^5.8.3",
     "vite": "^7.0.6"
+  },
+  "dependencies": {
+    "utif": "^3.1.0"
   }
 }

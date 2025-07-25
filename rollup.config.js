@@ -1,5 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import dts from 'rollup-plugin-dts';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 const config = [
   // ES Module build
@@ -10,7 +12,11 @@ const config = [
       format: 'es',
       sourcemap: true,
     },
-    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+    plugins: [
+      resolve({ browser: true }),
+      commonjs(),
+      typescript({ tsconfig: './tsconfig.json' })
+    ],
   },
   // CommonJS build
   {
@@ -20,7 +26,11 @@ const config = [
       format: 'cjs',
       sourcemap: true,
     },
-    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+    plugins: [
+      resolve({ browser: true }),
+      commonjs(),
+      typescript({ tsconfig: './tsconfig.json' })
+    ],
   },
   // UMD build for browsers
   {
@@ -31,7 +41,11 @@ const config = [
       name: 'BrowserFileViewer',
       sourcemap: true,
     },
-    plugins: [typescript({ tsconfig: './tsconfig.json' })],
+    plugins: [
+      resolve({ browser: true }),
+      commonjs(),
+      typescript({ tsconfig: './tsconfig.json' })
+    ],
   },
   // Type definitions
   {
