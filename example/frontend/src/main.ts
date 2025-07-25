@@ -1,9 +1,15 @@
-import { BrowserFileViewer } from 'browser-file-viewer';
+import { BrowserFileViewer, DOMFileViewer } from 'browser-file-viewer';
 import './style.css';
 
-// Initialize the file viewer
-const viewer = new BrowserFileViewer();
-let currentImageViewer: any = null; // Store reference to current viewer instance
+// Initialize the file viewer with new architecture
+const viewer = new BrowserFileViewer({
+  showFileInfo: true,
+  enablePagination: true,
+  maxDimensions: { width: 1200, height: 800 }
+});
+
+// DOM adapter for easy container-based usage
+let domViewer: DOMFileViewer | null = null;
 
 // Get DOM elements
 const uploadArea = document.getElementById('uploadArea') as HTMLElement;
@@ -23,26 +29,32 @@ interface FileItem {
   path: string;
 }
 
-// Setup external pagination controls
+// Setup external pagination controls with new API
 function setupPaginationControls(): void {
   console.log('Setting up pagination controls');
   
   // Listen for pagination events from the viewer
-  (viewer as any).addEventListener('pagination-available', (event: any) => {
-    console.log('Pagination available event:', event.detail);
-    const { currentPage, totalPages } = event.detail;
-    showPaginationControls(currentPage, totalPages);
+  viewer.addEventListener('pageChanged', (event: any) => {
+    console.log('Page changed event:', event.detail);
+    const paginationInfo = viewer.getPaginationInfo();
+    if (paginationInfo) {
+      updatePaginationControls(paginationInfo.currentPage, paginationInfo.totalPages);
+    }
   });
 
-  (viewer as any).addEventListener('pagination-hide', () => {
-    console.log('Pagination hide event');
+  viewer.addEventListener('loaded', () => {
+    console.log('File loaded event');
+    const paginationInfo = viewer.getPaginationInfo();
+    if (paginationInfo && paginationInfo.totalPages > 1) {
+      showPaginationControls(paginationInfo.currentPage, paginationInfo.totalPages);
+    } else {
+      hidePaginationControls();
+    }
+  });
+
+  viewer.addEventListener('error', () => {
+    console.log('Error event - hiding pagination');
     hidePaginationControls();
-  });
-
-  (viewer as any).addEventListener('pagination-update', (event: any) => {
-    console.log('Pagination update event:', event.detail);
-    const { currentPage, totalPages } = event.detail;
-    updatePaginationControls(currentPage, totalPages);
   });
 }
 
@@ -69,17 +81,21 @@ function showPaginationControls(currentPage: number, totalPages: number): void {
   
   prevBtn.addEventListener('click', async () => {
     console.log('Previous button clicked');
-    if (currentImageViewer && currentImageViewer.previousPage) {
-      await currentImageViewer.previousPage();
+    try {
+      await viewer.previousPage();
       console.log('Previous page called');
+    } catch (error) {
+      console.error('Error navigating to previous page:', error);
     }
   });
   
   nextBtn.addEventListener('click', async () => {
     console.log('Next button clicked');
-    if (currentImageViewer && currentImageViewer.nextPage) {
-      await currentImageViewer.nextPage();
+    try {
+      await viewer.nextPage();
       console.log('Next page called');
+    } catch (error) {
+      console.error('Error navigating to next page:', error);
     }
   });
   
@@ -87,9 +103,14 @@ function showPaginationControls(currentPage: number, totalPages: number): void {
     const target = e.target as HTMLInputElement;
     const pageNum = parseInt(target.value);
     console.log('Page input changed to:', pageNum);
-    if (pageNum >= 1 && pageNum <= totalPages && currentImageViewer && currentImageViewer.jumpToPage) {
-      await currentImageViewer.jumpToPage(pageNum);
-      console.log('Jump to page called with:', pageNum);
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      try {
+        await viewer.jumpToPage(pageNum);
+        console.log('Jump to page called with:', pageNum);
+      } catch (error) {
+        console.error('Error jumping to page:', error);
+        target.value = currentPage.toString();
+      }
     } else {
       target.value = currentPage.toString();
     }
@@ -188,7 +209,7 @@ async function loadExampleFiles(): Promise<void> {
       
       // Check if file is supported for styling purposes
       const mockFile = new File([''], file.name, { type: file.type });
-      const isSupported = viewer.canView(mockFile);
+      const isSupported = viewer.canHandle(mockFile);
       const rowClass = isSupported ? '' : 'unsupported-file';
       
       row.className = rowClass;
@@ -217,7 +238,7 @@ async function loadExampleFiles(): Promise<void> {
     
     const supportedCount = allFiles.filter((file: FileItem) => {
       const mockFile = new File([''], file.name, { type: file.type });
-      return viewer.canView(mockFile);
+      return viewer.canHandle(mockFile);
     }).length;
     
     showMessage(`Loaded ${allFiles.length} files (${supportedCount} supported, ${allFiles.length - supportedCount} unsupported)`, false);
@@ -355,7 +376,7 @@ function showMessage(message: string, isError = false): void {
   }
 }
 
-// Handle file viewing
+// Handle file viewing with new API
 async function viewFile(file: File): Promise<void> {
   try {
     messageContainer.innerHTML = '';
@@ -363,29 +384,29 @@ async function viewFile(file: File): Promise<void> {
     viewerContainer.classList.add('viewer-container');
     viewerContainer.innerHTML = ''; // Clear the no-file message
     
-    const result = await viewer.view(file, {
-      container: viewerContainer,
-      showFileInfo: true
+    // Create DOM adapter for this container
+    domViewer = new DOMFileViewer(viewerContainer, {
+      showFileInfo: true,
+      enablePagination: true,
+      maxDimensions: { width: 1200, height: 800 }
     });
+
+    // Load file using DOM adapter
+    const result = await domViewer.loadFile(file);
 
     if (result.success) {
       showMessage(`Successfully loaded: ${file.name}`);
-      
-      // Store reference to the current viewer instance for pagination
-      // Access the currentViewer property which is the active ImageViewer instance
-      currentImageViewer = (viewer as any).currentViewer;
-      
     } else {
       showMessage(`Error: ${result.error}`, true);
       viewerContainer.innerHTML = '<div class="no-file-message text-center text-gray-500 text-lg"><p>📷 Select a file from the list to view it here</p></div>';
-      currentImageViewer = null;
+      domViewer = null;
       hidePaginationControls();
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     showMessage(`Unexpected error: ${errorMessage}`, true);
     viewerContainer.innerHTML = '<div class="no-file-message text-center text-gray-500 text-lg"><p>📷 Select a file from the list to view it here</p></div>';
-    currentImageViewer = null;
+    domViewer = null;
     hidePaginationControls();
   }
 }

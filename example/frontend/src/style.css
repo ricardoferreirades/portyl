@@ -1,51 +1,87 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin: 0;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  color: #333;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom component classes */
+@layer components {
+  .upload-area {
+    @apply border-2 border-dashed border-gray-300 rounded-lg p-5 text-center bg-gradient-to-br from-blue-50 to-indigo-50 transition-all duration-300 cursor-pointer hover:border-blue-400 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-400/15;
+  }
+  
+  .upload-area.drag-over {
+    @apply border-blue-400 bg-blue-50;
+  }
+  
+  .upload-button {
+    @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white border-none px-4 py-2 rounded-md cursor-pointer text-sm ml-2 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-400/30;
+  }
+  
+  .files-table {
+    @apply w-full border-collapse text-sm;
+  }
+  
+  .files-table th {
+    @apply bg-gray-50 p-2 text-left border-b border-gray-200 font-semibold sticky top-0 z-10;
+  }
+  
+  .files-table td {
+    @apply p-2 border-b border-gray-100 align-middle;
+  }
+  
+  .files-table tbody tr:hover {
+    @apply bg-blue-50;
+  }
+  
+  .view-button {
+    @apply bg-blue-500 text-white border-none px-2 py-1 rounded cursor-pointer text-xs transition-colors duration-200 hover:bg-blue-600;
+  }
+  
+  .type-tag {
+    @apply bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs font-medium;
+  }
+  
+  .pagination-button {
+    @apply bg-blue-500 text-white border-none px-4 py-2 rounded-md cursor-pointer text-sm transition-all duration-200 hover:bg-blue-600 hover:-translate-y-0.5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none;
+  }
+  
+  .page-input {
+    @apply w-16 px-2 py-1.5 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+  
+  .message {
+    @apply px-4 py-3 rounded-md mb-2 text-sm shadow-lg backdrop-blur-sm;
+  }
+  
+  .message.success {
+    @apply bg-green-500/90 text-white;
+  }
+  
+  .message.error {
+    @apply bg-red-500/90 text-white;
+  }
+  
+  .message.info {
+    @apply bg-blue-500/90 text-white;
+  }
 }
 
-#app {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 32px;
-  font-size: 2.5rem;
+/* Custom styles that don't fit into Tailwind utilities */
+.panel-header h1 {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.upload-area {
-  border: 3px dashed #ddd;
-  border-radius: 12px;
-  padding: 48px;
-  text-align: center;
-  margin-bottom: 24px;
+.viewer-container.empty {
   background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
-  transition: all 0.3s ease;
-  cursor: pointer;
 }
 
-.upload-area:hover {
-  border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .upload-area.dragover {
@@ -64,46 +100,11 @@ h1 {
   display: none;
 }
 
-.upload-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-}
+/* Remove conflicting upload-button styles - using Tailwind classes instead */
 
-.upload-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
+/* .viewer-container styles moved to inline Tailwind classes in HTML */
 
-.upload-button:active {
-  transform: translateY(0);
-}
-
-.viewer-container {
-  min-height: 400px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 24px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-}
-
-.viewer-container.empty {
-  color: #9ca3af;
-  font-style: italic;
-  font-size: 1.1rem;
-}
+/* .viewer-container.empty styles moved to inline Tailwind classes */
 
 .error-message {
   color: #dc2626;

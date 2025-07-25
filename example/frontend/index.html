@@ -6,14 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Browser File Viewer Demo</title>
   </head>
-  <body>
-    <div id="app">
-      <div class="container">
-        <h1>🖼️ Browser File Viewer Demo</h1>
+  <body class="bg-gradient-to-br from-blue-500 to-purple-600 h-screen overflow-hidden text-gray-800 font-sans m-0 p-0">
+    <div id="app" class="flex h-screen w-screen p-4 gap-4 box-border">
+      <!-- Left Panel: File Selection (50% width) -->
+      <div class="w-1/2 bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 flex flex-col overflow-hidden">
+        <div class="p-5 border-b border-gray-200 flex-shrink-0">
+          <h1 class="text-xl font-bold text-center m-0">🖼️ File Viewer</h1>
+        </div>
         
-        <div class="example-files-section">
-          <h3>📁 Example Files</h3>
-          <div class="files-table-container">
+        <!-- Drag & Drop Area -->
+        <div class="upload-area m-5 flex-shrink-0" id="uploadArea">
+          <p class="mb-2">📤 Drop files here or</p>
+          <button class="upload-button" id="uploadButton">Choose Files</button>
+          <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.tiff,.tif">
+        </div>
+        
+        <!-- File List -->
+        <div class="files-section flex-1 flex flex-col min-h-0 mx-5">
+          <h3 class="mb-3 text-gray-700 text-lg font-semibold">📁 Files</h3>
+          <div class="files-table-container flex-1 overflow-y-auto border border-gray-200 rounded-lg bg-white">
             <table class="files-table" id="filesTable">
               <thead>
                 <tr>
@@ -25,45 +36,38 @@
               </thead>
               <tbody id="filesTableBody">
                 <tr>
-                  <td colspan="4" class="loading">Loading example files...</td>
+                  <td colspan="4" class="loading text-center text-gray-500 italic">Loading files...</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
         
-        <div class="upload-area" id="uploadArea">
-          <p>Drag and drop a file here, or click to select</p>
-          <button class="upload-button" id="uploadButton">
-            Choose File
-          </button>
-          <input type="file" id="fileInput" class="file-input" multiple accept="image/*,.tiff,.tif">
+        <!-- Supported Types -->
+        <div class="supported-types p-5 border-t border-gray-200 flex-shrink-0">
+          <h4 class="mb-2 text-gray-700 text-sm font-semibold">Supported Types:</h4>
+          <div class="type-list flex flex-wrap gap-1" id="supportedTypes"></div>
         </div>
-
-        <div class="viewer-container empty" id="viewerContainer">
-          Select a file to view it here
+      </div>
+      
+      <!-- Right Panel: Viewer (50% width) -->
+      <div class="w-1/2 bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 flex flex-col overflow-hidden">
+        <!-- Pagination Controls (when applicable) -->
+        <div id="paginationControls" class="hidden px-5 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-center gap-3 flex-shrink-0">
+          <!-- Pagination will be injected here -->
         </div>
-
-        <div id="messageContainer"></div>
-
-        <div class="supported-types">
-          <h3>Supported File Types</h3>
-          <div class="type-list" id="supportedTypes"></div>
+        
+        <!-- Viewer Container -->
+        <div class="viewer-section flex-1 relative overflow-hidden p-0 m-0">
+          <div id="viewerContainer" class="viewer-container w-full h-full flex items-center justify-center relative overflow-hidden bg-white rounded-lg border-0">
+            <div class="no-file-message text-center text-gray-500 text-lg">
+              <p>📷 Select a file from the list to view it here</p>
+            </div>
+          </div>
         </div>
-
-        <div class="demo-features">
-          <h3>Demo Features</h3>
-          <ul>
-            <li>✅ Canvas-based rendering</li>
-            <li>✅ TIFF file support</li>
-            <li>✅ Drag and drop support</li>
-            <li>✅ File information display</li>
-            <li>✅ Error handling</li>
-            <li>✅ Responsive design</li>
-            <li>✅ TypeScript support</li>
-            <li>🔄 Hot module replacement</li>
-          </ul>
-        </div>
+        
+        <!-- Messages -->
+        <div id="messageContainer" class="message-container absolute top-5 right-5 z-50 max-w-xs"></div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

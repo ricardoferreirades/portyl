@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "browser-file-viewer": "file:../../"
+    "browser-file-viewer": "file:../../",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.0",
+    "postcss": "^8.5.6",
     "typescript": "^5.8.3",
     "vite": "^7.0.6"
   }
