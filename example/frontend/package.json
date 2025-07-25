@@ -1,0 +1,20 @@
+{
+  "name": "browser-file-viewer-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Frontend demo for browser file viewer library",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "browser-file-viewer": "file:../../"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.6"
+  }
+}

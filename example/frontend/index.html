@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browser File Viewer Demo</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <h1>🖼️ Browser File Viewer Demo</h1>
+        
+        <div class="example-files-section">
+          <h3>📁 Example Files</h3>
+          <div class="files-table-container">
+            <table class="files-table" id="filesTable">
+              <thead>
+                <tr>
+                  <th>📄 Name</th>
+                  <th>📏 Size</th>
+                  <th>🏷️ Type</th>
+                  <th>🎯 Action</th>
+                </tr>
+              </thead>
+              <tbody id="filesTableBody">
+                <tr>
+                  <td colspan="4" class="loading">Loading example files...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="upload-area" id="uploadArea">
+          <p>Drag and drop a file here, or click to select</p>
+          <button class="upload-button" id="uploadButton">
+            Choose File
+          </button>
+          <input type="file" id="fileInput" class="file-input" multiple accept="image/*,.tiff,.tif">
+        </div>
+
+        <div class="viewer-container empty" id="viewerContainer">
+          Select a file to view it here
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="supported-types">
+          <h3>Supported File Types</h3>
+          <div class="type-list" id="supportedTypes"></div>
+        </div>
+
+        <div class="demo-features">
+          <h3>Demo Features</h3>
+          <ul>
+            <li>✅ Canvas-based rendering</li>
+            <li>✅ TIFF file support</li>
+            <li>✅ Drag and drop support</li>
+            <li>✅ File information display</li>
+            <li>✅ Error handling</li>
+            <li>✅ Responsive design</li>
+            <li>✅ TypeScript support</li>
+            <li>🔄 Hot module replacement</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
