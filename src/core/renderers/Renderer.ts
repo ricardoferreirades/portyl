@@ -25,10 +25,18 @@ export interface RenderTarget {
  * Defines contract for rendering image pages to different targets
  */
 export abstract class Renderer {
-  abstract render(page: ImagePage, target: RenderTarget, options?: RenderOptions): Promise<void>;
+  abstract render(
+    page: ImagePage,
+    target: RenderTarget,
+    options?: RenderOptions
+  ): Promise<void>;
   abstract clear(target: RenderTarget): void;
-  abstract resize(target: RenderTarget, newWidth: number, newHeight: number): void;
-  
+  abstract resize(
+    target: RenderTarget,
+    newWidth: number,
+    newHeight: number
+  ): void;
+
   /**
    * Calculate dimensions maintaining aspect ratio
    */

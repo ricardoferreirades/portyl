@@ -6,7 +6,11 @@ import { ImagePage } from '../processors/FileProcessor';
  * Renders image pages to HTML5 Canvas elements
  */
 export class CanvasRenderer extends Renderer {
-  async render(page: ImagePage, target: HTMLCanvasElement, options: RenderOptions = {}): Promise<void> {
+  async render(
+    page: ImagePage,
+    target: HTMLCanvasElement,
+    options: RenderOptions = {}
+  ): Promise<void> {
     const ctx = target.getContext('2d');
     if (!ctx) {
       throw new Error('Cannot get canvas 2D context');
@@ -17,7 +21,7 @@ export class CanvasRenderer extends Renderer {
       maxWidth = target.width,
       maxHeight = target.height,
       preserveAspectRatio = true,
-      backgroundColor = 'transparent'
+      backgroundColor = 'transparent',
     } = options;
 
     // Calculate display dimensions
@@ -45,8 +49,12 @@ export class CanvasRenderer extends Renderer {
     }
 
     // Create ImageData object
-    const canvasImageData = new ImageData(imageData.data, imageData.width, imageData.height);
-    
+    const canvasImageData = new ImageData(
+      imageData.data,
+      imageData.width,
+      imageData.height
+    );
+
     // Create temporary canvas for the image
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d')!;
@@ -85,29 +93,33 @@ export class CanvasRenderer extends Renderer {
    * Render file information overlay
    */
   private renderFileInfo(
-    ctx: CanvasRenderingContext2D, 
-    page: ImagePage, 
-    canvasWidth: number, 
-    canvasHeight: number
+    ctx: CanvasRenderingContext2D,
+    page: ImagePage,
+    _canvasWidth: number,
+    _canvasHeight: number
   ): void {
     const { imageData, metadata } = page;
-    
+
     // Prepare info text
     const info = [
       `Dimensions: ${imageData.width} × ${imageData.height}`,
       `Format: ${imageData.format.toUpperCase()}`,
       metadata?.originalType && `Type: ${metadata.originalType}`,
-      metadata?.fileName && `File: ${metadata.fileName}`
+      metadata?.fileName && `File: ${metadata.fileName}`,
     ].filter(Boolean);
 
-    if (info.length === 0) return;
+    if (info.length === 0) {
+      return;
+    }
 
     // Style
     const fontSize = 12;
     const padding = 8;
     const lineHeight = fontSize + 2;
     const boxHeight = info.length * lineHeight + padding * 2;
-    const boxWidth = Math.max(...info.map(text => ctx.measureText(text).width)) + padding * 2;
+    const boxWidth =
+      Math.max(...info.map((text) => ctx.measureText(text).width)) +
+      padding * 2;
 
     // Background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';

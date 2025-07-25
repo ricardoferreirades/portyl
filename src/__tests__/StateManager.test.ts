@@ -24,9 +24,9 @@ describe('StateManager', () => {
 
   it('should update state immutably', () => {
     const state1 = stateManager.getState();
-    stateManager.setState(prev => ({ ...prev, count: prev.count + 1 }));
+    stateManager.setState((prev) => ({ ...prev, count: prev.count + 1 }));
     const state2 = stateManager.getState();
-    
+
     expect(state1).not.toBe(state2);
     expect(state1.count).toBe(0);
     expect(state2.count).toBe(1);
@@ -36,11 +36,11 @@ describe('StateManager', () => {
     const listener = jest.fn();
     stateManager.subscribe(listener);
 
-    stateManager.setState(prev => ({ ...prev, count: 5 }));
-    
+    stateManager.setState((prev) => ({ ...prev, count: 5 }));
+
     // Wait for async notification
-    await new Promise(resolve => setTimeout(resolve, 10));
-    
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     expect(listener).toHaveBeenCalled();
   });
 });
@@ -60,7 +60,7 @@ describe('ProcessorStateManager', () => {
 
   it('should handle file loading flow', () => {
     const fileInfo = { name: 'test.jpg', size: 1024, type: 'image/jpeg' };
-    
+
     stateManager.startLoading(fileInfo);
     expect(stateManager.getState().isLoading).toBe(true);
     expect(stateManager.getState().fileInfo).toEqual(fileInfo);
@@ -72,24 +72,24 @@ describe('ProcessorStateManager', () => {
 
   it('should navigate between pages', () => {
     stateManager.finishLoading(5);
-    
+
     stateManager.navigateToPage(2);
     expect(stateManager.getState().currentPage).toBe(2);
   });
 
   it('should provide pagination info', () => {
     stateManager.finishLoading(3);
-    
+
     // Check initial state (0-based internally)
     expect(stateManager.getState().currentPage).toBe(0);
-    
+
     stateManager.navigateToPage(1);
-    
+
     // Check page was set correctly (0-based internally)
     expect(stateManager.getState().currentPage).toBe(1);
-    
+
     const info = stateManager.getPaginationInfo();
-    
+
     // getPaginationInfo returns 1-based indexing for UI
     expect(info?.currentPage).toBe(2); // 1-based: internal page 1 = UI page 2
     expect(info?.totalPages).toBe(3);

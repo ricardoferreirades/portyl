@@ -1,4 +1,7 @@
-import { ProcessorStateManager, ProcessorState } from '../state/ProcessorStateManager';
+import {
+  ProcessorStateManager,
+  ProcessorState,
+} from '../state/ProcessorStateManager';
 import { Unsubscribe } from '../state/StateManager';
 
 /**
@@ -30,7 +33,7 @@ export abstract class FileProcessor {
 
   constructor(stateManager?: ProcessorStateManager) {
     this.stateManager = stateManager || new ProcessorStateManager();
-    
+
     // Set up internal event forwarding for backward compatibility
     this.setupEventForwarding();
   }
@@ -40,7 +43,7 @@ export abstract class FileProcessor {
   abstract getPages(): ImagePage[];
   abstract getCurrentPage(): ImagePage | null;
   abstract navigateToPage(index: number): Promise<void>;
-  
+
   /**
    * Get current processor state (immutable)
    */
@@ -51,7 +54,9 @@ export abstract class FileProcessor {
   /**
    * Subscribe to state changes
    */
-  subscribe(listener: (current: ProcessorState, previous: ProcessorState) => void): Unsubscribe {
+  subscribe(
+    listener: (current: ProcessorState, previous: ProcessorState) => void
+  ): Unsubscribe {
     return this.stateManager.subscribe(listener);
   }
 
@@ -94,7 +99,12 @@ export abstract class FileProcessor {
   /**
    * Get pagination info
    */
-  getPaginationInfo(): { currentPage: number; totalPages: number; canGoNext: boolean; canGoPrevious: boolean } | null {
+  getPaginationInfo(): {
+    currentPage: number;
+    totalPages: number;
+    canGoNext: boolean;
+    canGoPrevious: boolean;
+  } | null {
     return this.stateManager.getPaginationInfo();
   }
 
@@ -107,48 +117,58 @@ export abstract class FileProcessor {
       this.stateManager.subscribe((current, previous) => {
         // Dispatch state change event
         if (this.eventTarget) {
-          this.eventTarget.dispatchEvent(new CustomEvent('stateChange', {
-            detail: { current, previous }
-          }));
+          this.eventTarget.dispatchEvent(
+            new CustomEvent('stateChange', {
+              detail: { current, previous },
+            })
+          );
         }
 
         // Dispatch specific events for major state changes
         if (current.isLoading !== previous.isLoading) {
           const eventType = current.isLoading ? 'loadingStart' : 'loadingEnd';
           if (this.eventTarget) {
-            this.eventTarget.dispatchEvent(new CustomEvent(eventType, {
-              detail: current
-            }));
+            this.eventTarget.dispatchEvent(
+              new CustomEvent(eventType, {
+                detail: current,
+              })
+            );
           }
         }
 
         if (current.currentPage !== previous.currentPage) {
           if (this.eventTarget) {
-            this.eventTarget.dispatchEvent(new CustomEvent('pageChanged', {
-              detail: {
-                currentPage: current.currentPage,
-                totalPages: current.totalPages
-              }
-            }));
+            this.eventTarget.dispatchEvent(
+              new CustomEvent('pageChanged', {
+                detail: {
+                  currentPage: current.currentPage,
+                  totalPages: current.totalPages,
+                },
+              })
+            );
           }
         }
 
         if (current.error && current.error !== previous.error) {
           if (this.eventTarget) {
-            this.eventTarget.dispatchEvent(new CustomEvent('error', {
-              detail: { error: current.error }
-            }));
+            this.eventTarget.dispatchEvent(
+              new CustomEvent('error', {
+                detail: { error: current.error },
+              })
+            );
           }
         }
 
         if (!current.isLoading && previous.isLoading && !current.error) {
           if (this.eventTarget) {
-            this.eventTarget.dispatchEvent(new CustomEvent('loaded', {
-              detail: {
-                totalPages: current.totalPages,
-                state: current
-              }
-            }));
+            this.eventTarget.dispatchEvent(
+              new CustomEvent('loaded', {
+                detail: {
+                  totalPages: current.totalPages,
+                  state: current,
+                },
+              })
+            );
           }
         }
       })
@@ -169,12 +189,12 @@ export abstract class FileProcessor {
    */
   destroy(): void {
     // Unsubscribe from all state changes
-    this.subscriptions.forEach(unsubscribe => unsubscribe());
+    this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
-    
+
     // Destroy state manager
     this.stateManager.destroy();
-    
+
     // Clear event target reference
     this.eventTarget = undefined;
   }

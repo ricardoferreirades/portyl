@@ -13,7 +13,7 @@ jest.mock('utif', () => ({
   data: Uint8ClampedArray;
   width: number;
   height: number;
-  
+
   constructor(data: Uint8ClampedArray, width: number, height: number) {
     this.data = data;
     this.width = width;
@@ -23,6 +23,7 @@ jest.mock('utif', () => ({
 
 // Setup DOM environment
 if (typeof window === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { JSDOM } = require('jsdom');
   const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
   (global as any).window = dom.window;
@@ -37,13 +38,17 @@ if (typeof window === 'undefined') {
     getImageData = jest.fn(() => ({
       data: new Uint8ClampedArray(4),
       width: 1,
-      height: 1
+      height: 1,
     }));
     putImageData = jest.fn();
   };
 }
 
-function createMockFile(name: string, type: string, content: string = 'test content'): File {
+function createMockFile(
+  name: string,
+  type: string,
+  content: string = 'test content'
+): File {
   return new File([content], name, { type, lastModified: Date.now() });
 }
 
@@ -70,9 +75,9 @@ describe('BrowserFileViewer', () => {
         showFileInfo: false,
         enablePagination: false,
         preloadPages: 2,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
       };
-      
+
       const customViewer = new BrowserFileViewer(config);
       expect(customViewer).toBeInstanceOf(BrowserFileViewer);
       customViewer.destroy();
@@ -97,7 +102,7 @@ describe('BrowserFileViewer', () => {
       const types = viewer.getSupportedTypes();
       expect(Array.isArray(types)).toBe(true);
       expect(types.length).toBeGreaterThan(0);
-      
+
       // Check for common image types
       expect(types).toContain('image/jpeg');
       expect(types).toContain('image/png');
@@ -112,7 +117,7 @@ describe('BrowserFileViewer', () => {
       const jpegFile = createMockFile('test.jpg', 'image/jpeg');
       const pngFile = createMockFile('test.png', 'image/png');
       const tiffFile = createMockFile('test.tiff', 'image/tiff');
-      
+
       expect(viewer.canHandle(jpegFile)).toBe(true);
       expect(viewer.canHandle(pngFile)).toBe(true);
       expect(viewer.canHandle(tiffFile)).toBe(true);
@@ -121,7 +126,7 @@ describe('BrowserFileViewer', () => {
     it('should reject unsupported file types', () => {
       const textFile = createMockFile('test.txt', 'text/plain');
       const pdfFile = createMockFile('test.pdf', 'application/pdf');
-      
+
       expect(viewer.canHandle(textFile)).toBe(false);
       expect(viewer.canHandle(pdfFile)).toBe(false);
     });
@@ -134,9 +139,13 @@ describe('BrowserFileViewer', () => {
 
   describe('File Information Utilities', () => {
     it('should extract file information', () => {
-      const file = createMockFile('example.jpg', 'image/jpeg', 'test image content');
+      const file = createMockFile(
+        'example.jpg',
+        'image/jpeg',
+        'test image content'
+      );
       const info = viewer.getFileInfo(file);
-      
+
       expect(info.name).toBe('example.jpg');
       expect(info.type).toBe('image/jpeg');
       expect(info.size).toBe('test image content'.length);
@@ -166,14 +175,14 @@ describe('BrowserFileViewer', () => {
     it('should reject unsupported file types', async () => {
       const unsupportedFile = createMockFile('test.txt', 'text/plain');
       const result = await viewer.loadFile(unsupportedFile);
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('Unsupported file type: text/plain');
     });
 
     it('should return load result with file info for supported files', async () => {
       const imageFile = createMockFile('test.jpg', 'image/jpeg');
-      
+
       // Mock the image processor's loadFile method to succeed
       const mockProcessor = {
         loadFile: jest.fn().mockResolvedValue(undefined),
@@ -184,15 +193,17 @@ describe('BrowserFileViewer', () => {
         removeEventListener: jest.fn(),
         dispatchEvent: jest.fn(),
         setEventTarget: jest.fn(),
-        subscribe: jest.fn().mockReturnValue(() => {})
+        subscribe: jest.fn().mockReturnValue(() => {}),
       };
 
       // Temporarily replace createProcessor to return our mock
       const originalCreateProcessor = (viewer as any).createProcessor;
-      (viewer as any).createProcessor = jest.fn().mockReturnValue(mockProcessor);
+      (viewer as any).createProcessor = jest
+        .fn()
+        .mockReturnValue(mockProcessor);
 
       const result = await viewer.loadFile(imageFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.pageCount).toBe(1);
       expect(result.fileInfo).toBeDefined();
@@ -222,8 +233,12 @@ describe('BrowserFileViewer', () => {
   describe('Rendering', () => {
     it('should fail to render when no page is loaded', async () => {
       const canvas = document.createElement('canvas');
-      const result = await viewer.renderToTarget({ canvas, width: 100, height: 100 });
-      
+      const result = await viewer.renderToTarget({
+        canvas,
+        width: 100,
+        height: 100,
+      });
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('No page to render');
     });
@@ -238,7 +253,9 @@ describe('BrowserFileViewer', () => {
         render: jest.fn().mockRejectedValue(new Error('Rendering failed')),
         clear: jest.fn(),
         resize: jest.fn(),
-        calculateDimensions: jest.fn().mockReturnValue({ width: 100, height: 100 })
+        calculateDimensions: jest
+          .fn()
+          .mockReturnValue({ width: 100, height: 100 }),
       };
 
       const canvas = document.createElement('canvas');
@@ -247,7 +264,7 @@ describe('BrowserFileViewer', () => {
         {},
         mockRenderer as any
       );
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('Rendering failed');
     });
@@ -257,11 +274,11 @@ describe('BrowserFileViewer', () => {
     it('should update configuration', () => {
       const newConfig: Partial<ViewerConfig> = {
         showFileInfo: true,
-        maxDimensions: { width: 1000, height: 800 }
+        maxDimensions: { width: 1000, height: 800 },
       };
-      
+
       viewer.updateConfig(newConfig);
-      
+
       // Since config is private, we test through behavior
       expect(() => viewer.updateConfig(newConfig)).not.toThrow();
     });
@@ -270,19 +287,23 @@ describe('BrowserFileViewer', () => {
   describe('Event Handling', () => {
     it('should be an EventTarget and support event listeners', () => {
       const mockListener = jest.fn();
-      
+
       viewer.addEventListener('error', mockListener);
-      expect(() => viewer.addEventListener('error', mockListener)).not.toThrow();
-      
+      expect(() =>
+        viewer.addEventListener('error', mockListener)
+      ).not.toThrow();
+
       viewer.removeEventListener('error', mockListener);
-      expect(() => viewer.removeEventListener('error', mockListener)).not.toThrow();
+      expect(() =>
+        viewer.removeEventListener('error', mockListener)
+      ).not.toThrow();
     });
   });
 
   describe('Resource Cleanup', () => {
     it('should clean up resources when destroyed', () => {
       viewer.destroy();
-      
+
       // After destruction, state should be null
       expect(viewer.getState()).toBeNull();
       expect(viewer.getPages()).toEqual([]);
@@ -342,7 +363,7 @@ describe('DOMFileViewer', () => {
     it('should reject unsupported files', async () => {
       const textFile = createMockFile('test.txt', 'text/plain');
       const result = await domViewer.loadFile(textFile);
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('Unsupported file type');
     });

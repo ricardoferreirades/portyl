@@ -21,15 +21,15 @@ export class FileUtils {
    */
   static getFileType(file: File): FileType | null {
     const mimeType = file.type.toLowerCase();
-    
+
     if (mimeType.startsWith('image/')) {
       return FileType.IMAGE;
     }
-    
+
     // Future extensions for other file types
     // if (mimeType.startsWith('video/')) return FileType.VIDEO;
     // if (mimeType.startsWith('audio/')) return FileType.AUDIO;
-    
+
     return null;
   }
 
@@ -48,8 +48,10 @@ export class FileUtils {
       'image/tiff',
       'image/tif',
     ];
-    return supportedTypes.includes(file.type.toLowerCase()) || 
-           this.isTiffByExtension(file.name);
+    return (
+      supportedTypes.includes(file.type.toLowerCase()) ||
+      this.isTiffByExtension(file.name)
+    );
   }
 
   /**
@@ -64,12 +66,14 @@ export class FileUtils {
    * Format file size in human readable format
    */
   static formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    
+    if (bytes === 0) {
+      return '0 Bytes';
+    }
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 

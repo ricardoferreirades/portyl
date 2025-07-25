@@ -45,21 +45,21 @@ export class StateManager<T> {
   setState(updater: StateUpdater<T>, source: string = 'unknown'): T {
     const previous = this._state;
     const updated = updater(previous);
-    
+
     // Ensure immutability
     const current = this.deepFreeze({ ...updated });
-    
+
     // Only update if state actually changed
     if (!this.isEqual(previous, current)) {
       this._state = current;
-      
+
       // Record transition
       this.recordTransition(previous, current, source);
-      
+
       // Notify subscribers
       this.notifySubscribers(current, previous);
     }
-    
+
     return current;
   }
 
@@ -68,7 +68,7 @@ export class StateManager<T> {
    */
   subscribe(listener: StateListener<T>): Unsubscribe {
     this._subscribers.add(listener);
-    
+
     // Return unsubscribe function
     return () => {
       this._subscribers.delete(listener);
@@ -110,7 +110,7 @@ export class StateManager<T> {
   private notifySubscribers(current: T, previous: T): void {
     // Use setTimeout to ensure notifications are async and don't block
     setTimeout(() => {
-      this._subscribers.forEach(listener => {
+      this._subscribers.forEach((listener) => {
         try {
           listener(current, previous);
         } catch (error) {
@@ -128,7 +128,7 @@ export class StateManager<T> {
       previous,
       current,
       timestamp: Date.now(),
-      source
+      source,
     };
 
     this._history.push(transition);
@@ -161,18 +161,30 @@ export class StateManager<T> {
    * Shallow equality check for performance
    */
   private isEqual(a: T, b: T): boolean {
-    if (a === b) return true;
-    if (typeof a !== 'object' || typeof b !== 'object') return false;
-    if (a === null || b === null) return false;
+    if (a === b) {
+      return true;
+    }
+    if (typeof a !== 'object' || typeof b !== 'object') {
+      return false;
+    }
+    if (a === null || b === null) {
+      return false;
+    }
 
     const keysA = Object.keys(a as object);
     const keysB = Object.keys(b as object);
 
-    if (keysA.length !== keysB.length) return false;
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
 
     for (const key of keysA) {
-      if (!keysB.includes(key)) return false;
-      if ((a as any)[key] !== (b as any)[key]) return false;
+      if (!keysB.includes(key)) {
+        return false;
+      }
+      if ((a as any)[key] !== (b as any)[key]) {
+        return false;
+      }
     }
 
     return true;

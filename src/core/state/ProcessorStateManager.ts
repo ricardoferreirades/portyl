@@ -1,4 +1,4 @@
-import { StateManager, StateListener, Unsubscribe } from './StateManager';
+import { StateManager, Unsubscribe } from './StateManager';
 
 /**
  * File processor state interface
@@ -28,7 +28,7 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
       currentPage: 0,
       totalPages: 0,
       isLoading: false,
-      isProcessing: false
+      isProcessing: false,
     });
   }
 
@@ -36,75 +36,92 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
    * Start loading a file
    */
   startLoading(fileInfo?: ProcessorState['fileInfo']): ProcessorState {
-    return this.setState(prev => ({
-      ...prev,
-      isLoading: true,
-      isProcessing: false,
-      error: undefined,
-      fileInfo
-    }), 'startLoading');
+    return this.setState(
+      (prev) => ({
+        ...prev,
+        isLoading: true,
+        isProcessing: false,
+        error: undefined,
+        fileInfo,
+      }),
+      'startLoading'
+    );
   }
 
   /**
    * Finish loading and set total pages
    */
   finishLoading(totalPages: number): ProcessorState {
-    return this.setState(prev => ({
-      ...prev,
-      isLoading: false,
-      totalPages,
-      currentPage: totalPages > 0 ? 0 : prev.currentPage,
-      loadedAt: new Date()
-    }), 'finishLoading');
+    return this.setState(
+      (prev) => ({
+        ...prev,
+        isLoading: false,
+        totalPages,
+        currentPage: totalPages > 0 ? 0 : prev.currentPage,
+        loadedAt: new Date(),
+      }),
+      'finishLoading'
+    );
   }
 
   /**
    * Start processing (e.g., rendering, transforming)
    */
   startProcessing(): ProcessorState {
-    return this.setState(prev => ({
-      ...prev,
-      isProcessing: true,
-      error: undefined
-    }), 'startProcessing');
+    return this.setState(
+      (prev) => ({
+        ...prev,
+        isProcessing: true,
+        error: undefined,
+      }),
+      'startProcessing'
+    );
   }
 
   /**
    * Finish processing
    */
   finishProcessing(): ProcessorState {
-    return this.setState(prev => ({
-      ...prev,
-      isProcessing: false
-    }), 'finishProcessing');
+    return this.setState(
+      (prev) => ({
+        ...prev,
+        isProcessing: false,
+      }),
+      'finishProcessing'
+    );
   }
 
   /**
    * Set error state
    */
   setError(error: string): ProcessorState {
-    return this.setState(prev => ({
-      ...prev,
-      isLoading: false,
-      isProcessing: false,
-      error
-    }), 'setError');
+    return this.setState(
+      (prev) => ({
+        ...prev,
+        isLoading: false,
+        isProcessing: false,
+        error,
+      }),
+      'setError'
+    );
   }
 
   /**
    * Navigate to specific page
    */
   navigateToPage(pageIndex: number): ProcessorState {
-    return this.setState(prev => {
+    return this.setState((prev) => {
       // Validate page index
       if (pageIndex < 0 || pageIndex >= prev.totalPages) {
-        console.warn(`Invalid page index: ${pageIndex} (total: ${prev.totalPages})`);
+        console.warn(
+          `Invalid page index: ${pageIndex} (total: ${prev.totalPages})`
+        );
         return prev; // No change for invalid index
       }
 
       return {
         ...prev,
-        currentPage: pageIndex
+        currentPage: pageIndex,
       };
     }, 'navigateToPage');
   }
@@ -113,15 +130,15 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
    * Navigate to next page
    */
   nextPage(): ProcessorState {
-    return this.setState(prev => {
+    return this.setState((prev) => {
       const nextIndex = prev.currentPage + 1;
       if (nextIndex >= prev.totalPages) {
         return prev; // No change if at last page
       }
-      
+
       return {
         ...prev,
-        currentPage: nextIndex
+        currentPage: nextIndex,
       };
     }, 'nextPage');
   }
@@ -130,15 +147,15 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
    * Navigate to previous page
    */
   previousPage(): ProcessorState {
-    return this.setState(prev => {
+    return this.setState((prev) => {
       const prevIndex = prev.currentPage - 1;
       if (prevIndex < 0) {
         return prev; // No change if at first page
       }
-      
+
       return {
         ...prev,
-        currentPage: prevIndex
+        currentPage: prevIndex,
       };
     }, 'previousPage');
   }
@@ -147,12 +164,15 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
    * Reset to initial state
    */
   reset(): ProcessorState {
-    return this.setState(() => ({
-      currentPage: 0,
-      totalPages: 0,
-      isLoading: false,
-      isProcessing: false
-    }), 'reset');
+    return this.setState(
+      () => ({
+        currentPage: 0,
+        totalPages: 0,
+        isLoading: false,
+        isProcessing: false,
+      }),
+      'reset'
+    );
   }
 
   /**
@@ -165,7 +185,7 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
     canGoPrevious: boolean;
   } | null {
     const state = this.getState();
-    
+
     if (state.totalPages <= 1) {
       return null;
     }
@@ -174,7 +194,7 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
       currentPage: state.currentPage + 1, // 1-based for UI
       totalPages: state.totalPages,
       canGoNext: state.currentPage < state.totalPages - 1,
-      canGoPrevious: state.currentPage > 0
+      canGoPrevious: state.currentPage > 0,
     };
   }
 
@@ -213,9 +233,14 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
   /**
    * Subscribe to page changes
    */
-  subscribeToPageChanges(listener: (currentPage: number, totalPages: number) => void): Unsubscribe {
+  subscribeToPageChanges(
+    listener: (currentPage: number, totalPages: number) => void
+  ): Unsubscribe {
     return this.subscribe((current, previous) => {
-      if (current.currentPage !== previous.currentPage || current.totalPages !== previous.totalPages) {
+      if (
+        current.currentPage !== previous.currentPage ||
+        current.totalPages !== previous.totalPages
+      ) {
         listener(current.currentPage, current.totalPages);
       }
     });
@@ -224,7 +249,9 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
   /**
    * Subscribe to errors
    */
-  subscribeToErrors(listener: (error: string | undefined) => void): Unsubscribe {
+  subscribeToErrors(
+    listener: (error: string | undefined) => void
+  ): Unsubscribe {
     return this.subscribe((current, previous) => {
       if (current.error !== previous.error) {
         listener(current.error);
@@ -236,7 +263,7 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
    * Clear current error
    */
   clearError(): void {
-    this.setState(current => ({ ...current, error: undefined }));
+    this.setState((current) => ({ ...current, error: undefined }));
   }
 
   /**
@@ -256,7 +283,7 @@ export class ProcessorStateManager extends StateManager<ProcessorState> {
       isLoading: false,
       isProcessing: false,
       error: undefined,
-      fileInfo: undefined
+      fileInfo: undefined,
     };
   }
 }

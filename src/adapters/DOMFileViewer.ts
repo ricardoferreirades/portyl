@@ -14,13 +14,13 @@ export class DOMFileViewer {
 
   constructor(container: HTMLElement, config?: ViewerConfig) {
     this.container = container;
-    
+
     // Create viewer with DOM-specific defaults
     this.viewer = new BrowserFileViewer({
       renderer: new CanvasRenderer(),
       showFileInfo: true,
       enablePagination: true,
-      ...config
+      ...config,
     });
 
     this.setupDOM();
@@ -34,11 +34,11 @@ export class DOMFileViewer {
     try {
       // Load file data
       const loadResult = await this.viewer.loadFile(file);
-      
+
       if (!loadResult.success) {
         return {
           success: false,
-          error: loadResult.error
+          error: loadResult.error,
         };
       }
 
@@ -50,16 +50,16 @@ export class DOMFileViewer {
 
       return {
         success: true,
-        element: this.container
+        element: this.container,
       };
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       this.showError(errorMessage);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -179,12 +179,14 @@ export class DOMFileViewer {
    * Render current page to canvas
    */
   private async render(): Promise<void> {
-    if (!this.canvas) return;
+    if (!this.canvas) {
+      return;
+    }
 
     try {
       await this.viewer.renderToTarget(this.canvas, {
         maxWidth: this.canvas.width,
-        maxHeight: this.canvas.height
+        maxHeight: this.canvas.height,
       });
     } catch (error) {
       console.error('Render error:', error);
@@ -195,7 +197,9 @@ export class DOMFileViewer {
    * Resize canvas to fit container
    */
   private resizeCanvas(): void {
-    if (!this.canvas) return;
+    if (!this.canvas) {
+      return;
+    }
 
     const containerRect = this.container.getBoundingClientRect();
     const maxWidth = Math.max(400, containerRect.width - 20); // 10px padding each side
@@ -209,7 +213,9 @@ export class DOMFileViewer {
    * Update pagination controls
    */
   private updatePaginationControls(): void {
-    if (!this.paginationContainer) return;
+    if (!this.paginationContainer) {
+      return;
+    }
 
     const paginationInfo = this.viewer.getPaginationInfo();
 
@@ -218,7 +224,8 @@ export class DOMFileViewer {
       return;
     }
 
-    const { currentPage, totalPages, canGoPrevious, canGoNext } = paginationInfo;
+    const { currentPage, totalPages, canGoPrevious, canGoNext } =
+      paginationInfo;
 
     this.paginationContainer.innerHTML = `
       <button id="prev-btn" ${!canGoPrevious ? 'disabled' : ''}>◀ Previous</button>
@@ -230,13 +237,19 @@ export class DOMFileViewer {
     this.paginationContainer.style.display = 'block';
 
     // Add event listeners
-    const prevBtn = this.paginationContainer.querySelector('#prev-btn') as HTMLButtonElement;
-    const nextBtn = this.paginationContainer.querySelector('#next-btn') as HTMLButtonElement;
-    const pageInput = this.paginationContainer.querySelector('#page-input') as HTMLInputElement;
+    const prevBtn = this.paginationContainer.querySelector(
+      '#prev-btn'
+    ) as HTMLButtonElement;
+    const nextBtn = this.paginationContainer.querySelector(
+      '#next-btn'
+    ) as HTMLButtonElement;
+    const pageInput = this.paginationContainer.querySelector(
+      '#page-input'
+    ) as HTMLInputElement;
 
     prevBtn.addEventListener('click', () => this.previousPage());
     nextBtn.addEventListener('click', () => this.nextPage());
-    
+
     pageInput.addEventListener('change', (e) => {
       const target = e.target as HTMLInputElement;
       const pageNum = parseInt(target.value);

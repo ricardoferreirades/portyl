@@ -1,4 +1,3 @@
-import { FileProcessor } from './core/processors/FileProcessor';
 import { Renderer } from './core/renderers/Renderer';
 
 /**
