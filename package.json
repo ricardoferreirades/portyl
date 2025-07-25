@@ -1,0 +1,74 @@
+{
+  "name": "browser-file-viewer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A TypeScript library for viewing files in the browser with support for images and more",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "browser": "dist/index.umd.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check src/**/*.ts",
+    "clean": "rm -rf dist example-dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "api:start": "cd example/api && npm start",
+    "api:dev": "cd example/api && npm run dev",
+    "api:build": "cd example/api && npm run build",
+    "frontend:dev": "npm run build && cd example/frontend && npm run dev",
+    "frontend:build": "npm run build && cd example/frontend && npm run build",
+    "frontend:preview": "cd example/frontend && npm run preview",
+    "example:setup": "cd example/api && npm install && cd ../frontend && npm install",
+    "example:dev": "npm run build && concurrently \"npm run api:start\" \"npm run frontend:dev\""
+  },
+  "keywords": [
+    "file-viewer",
+    "browser",
+    "image-viewer",
+    "typescript",
+    "frontend",
+    "library"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/browser-file-viewer"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/browser-file-viewer/issues"
+  },
+  "homepage": "https://github.com/your-username/browser-file-viewer#readme",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.6.2",
+    "rollup": "^4.45.1",
+    "rollup-plugin-dts": "^6.2.1",
+    "ts-jest": "^29.4.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.6"
+  }
+}
