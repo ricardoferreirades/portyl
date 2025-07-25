@@ -1,8 +1,16 @@
 import { ViewerConfig, LoadResult, RenderResult, FileInfo } from './types';
 import { FileUtils } from './utils';
-import { FileProcessor, ProcessorState, ImagePage } from './core/processors/FileProcessor';
+import {
+  FileProcessor,
+  ProcessorState,
+  ImagePage,
+} from './core/processors/FileProcessor';
 import { ImageProcessor } from './core/processors/ImageProcessor';
-import { Renderer, RenderOptions, RenderTarget } from './core/renderers/Renderer';
+import {
+  Renderer,
+  RenderOptions,
+  RenderTarget,
+} from './core/renderers/Renderer';
 import { CanvasRenderer } from './core/renderers/CanvasRenderer';
 
 /**
@@ -23,12 +31,12 @@ export class BrowserFileViewer extends EventTarget {
       preloadPages: 1,
       preserveAspectRatio: true,
       backgroundColor: 'transparent',
-      ...config
+      ...config,
     };
-    
+
     // Create default renderer
     this.defaultRenderer = config.renderer || new CanvasRenderer();
-    
+
     // Set up processor event forwarding
     this.setupEventForwarding();
   }
@@ -74,20 +82,22 @@ export class BrowserFileViewer extends EventTarget {
       return {
         success: true,
         pageCount: state.totalPages,
-        fileInfo
+        fileInfo,
       };
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+
       // Dispatch error event
-      this.dispatchEvent(new CustomEvent('error', { 
-        detail: { error: errorMessage } 
-      }));
+      this.dispatchEvent(
+        new CustomEvent('error', {
+          detail: { error: errorMessage },
+        })
+      );
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -153,7 +163,12 @@ export class BrowserFileViewer extends EventTarget {
   /**
    * Get pagination information
    */
-  getPaginationInfo(): { currentPage: number; totalPages: number; canGoNext: boolean; canGoPrevious: boolean } | null {
+  getPaginationInfo(): {
+    currentPage: number;
+    totalPages: number;
+    canGoNext: boolean;
+    canGoPrevious: boolean;
+  } | null {
     return this.processor?.getPaginationInfo() || null;
   }
 
@@ -161,7 +176,7 @@ export class BrowserFileViewer extends EventTarget {
    * Render current page to a target (optional rendering)
    */
   async renderToTarget<T extends RenderTarget>(
-    target: T, 
+    target: T,
     options?: RenderOptions,
     renderer?: Renderer
   ): Promise<RenderResult> {
@@ -178,18 +193,18 @@ export class BrowserFileViewer extends EventTarget {
         showFileInfo: this.config.showFileInfo,
         preserveAspectRatio: this.config.preserveAspectRatio,
         backgroundColor: this.config.backgroundColor,
-        ...options
+        ...options,
       };
 
       await activeRenderer.render(currentPage, target, renderOptions);
 
       return { success: true };
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown rendering error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown rendering error';
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -200,14 +215,14 @@ export class BrowserFileViewer extends EventTarget {
   getSupportedTypes(): string[] {
     return [
       'image/jpeg',
-      'image/jpg', 
+      'image/jpg',
       'image/png',
       'image/gif',
       'image/webp',
       'image/svg+xml',
       'image/bmp',
       'image/tiff',
-      'image/tif'
+      'image/tif',
     ];
   }
 
@@ -230,7 +245,7 @@ export class BrowserFileViewer extends EventTarget {
    */
   updateConfig(newConfig: Partial<ViewerConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     if (newConfig.renderer) {
       this.defaultRenderer = newConfig.renderer;
     }
@@ -253,11 +268,11 @@ export class BrowserFileViewer extends EventTarget {
     if (file.type.startsWith('image/') || this.isTiffFile(file)) {
       return new ImageProcessor();
     }
-    
+
     // Future: Add other processors
     // if (file.type.startsWith('video/')) return new VideoProcessor();
     // if (file.type === 'application/pdf') return new PDFProcessor();
-    
+
     return null;
   }
 
@@ -274,9 +289,9 @@ export class BrowserFileViewer extends EventTarget {
   private setupProcessorEvents(processor: FileProcessor): void {
     // Set up the processor to forward events to our EventTarget
     processor.setEventTarget(this);
-    
+
     // Also subscribe to state changes for additional handling
-    processor.subscribe((current, previous) => {
+    processor.subscribe((_current, _previous) => {
       // Additional custom logic can be added here if needed
       // The processor already forwards events via setEventTarget
     });
@@ -286,10 +301,12 @@ export class BrowserFileViewer extends EventTarget {
    * Check if file is TIFF
    */
   private isTiffFile(file: File): boolean {
-    return file.type === 'image/tiff' || 
-           file.type === 'image/tif' || 
-           file.name.toLowerCase().endsWith('.tiff') || 
-           file.name.toLowerCase().endsWith('.tif');
+    return (
+      file.type === 'image/tiff' ||
+      file.type === 'image/tif' ||
+      file.name.toLowerCase().endsWith('.tiff') ||
+      file.name.toLowerCase().endsWith('.tif')
+    );
   }
 
   /**
