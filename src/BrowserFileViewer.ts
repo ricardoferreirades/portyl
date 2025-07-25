@@ -272,20 +272,13 @@ export class BrowserFileViewer extends EventTarget {
    * Set up events for specific processor instance
    */
   private setupProcessorEvents(processor: FileProcessor): void {
-    processor.addEventListener('stateChange', (event: any) => {
-      this.dispatchEvent(new CustomEvent('stateChange', { detail: event.detail }));
-    });
-
-    processor.addEventListener('loaded', (event: any) => {
-      this.dispatchEvent(new CustomEvent('loaded', { detail: event.detail }));
-    });
-
-    processor.addEventListener('pageChanged', (event: any) => {
-      this.dispatchEvent(new CustomEvent('pageChanged', { detail: event.detail }));
-    });
-
-    processor.addEventListener('error', (event: any) => {
-      this.dispatchEvent(new CustomEvent('error', { detail: event.detail }));
+    // Set up the processor to forward events to our EventTarget
+    processor.setEventTarget(this);
+    
+    // Also subscribe to state changes for additional handling
+    processor.subscribe((current, previous) => {
+      // Additional custom logic can be added here if needed
+      // The processor already forwards events via setEventTarget
     });
   }
 
