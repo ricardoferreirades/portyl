@@ -1,8 +1,8 @@
 {
-  "name": "browser-file-viewer",
+  "name": "portyl",
   "version": "1.0.0",
   "type": "module",
-  "description": "A TypeScript library for viewing files in the browser with support for images and more",
+  "description": "A flexible, framework-agnostic library for rendering any file to canvas directly in the browser.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
@@ -44,12 +44,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/browser-file-viewer"
+    "url": "https://github.com/ricardoferreirades/portyl"
   },
   "bugs": {
-    "url": "https://github.com/your-username/browser-file-viewer/issues"
+    "url": "https://github.com/ricardoferreirades/portyl/issues"
   },
-  "homepage": "https://github.com/your-username/browser-file-viewer#readme",
+  "homepage": "https://github.com/ricardoferreirades/portyl#readme",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",

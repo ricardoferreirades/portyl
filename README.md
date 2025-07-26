@@ -1,6 +1,12 @@
-# Browser File Viewer
+# Portyl
 
-A lightweight, framework-agnostic TypeScript library for viewing files directly in the browser. Currently supports image files with plans to extend to other file types.
+**Portyl** is a smart, flexible gateway to understanding any file.
+
+A lightweight, framework-agnostic TypeScript library that renders files entirely in the browser through a unified canvas-based viewer.  
+Designed to provide a consistent, extensible way to visualize virtually any file type—across web, desktop, or mobile environments.
+
+**One canvas. Every file. Anywhere.**
+
 
 ## Features
 
@@ -17,14 +23,14 @@ A lightweight, framework-agnostic TypeScript library for viewing files directly 
 ## Installation
 
 ```bash
-npm install browser-file-viewer
+npm install portyl
 ```
 
 ## Quick Start
 
 ### ES Modules
 ```typescript
-import { BrowserFileViewer } from 'browser-file-viewer';
+import { BrowserFileViewer } from 'portyl';
 
 const viewer = new BrowserFileViewer();
 const container = document.getElementById('viewer-container');
@@ -50,12 +56,12 @@ fileInput.addEventListener('change', async (e) => {
 
 ### CommonJS
 ```javascript
-const { BrowserFileViewer } = require('browser-file-viewer');
+const { BrowserFileViewer } = require('portyl');
 ```
 
 ### Browser Script Tag
 ```html
-<script src="node_modules/browser-file-viewer/dist/index.umd.js"></script>
+<script src="node_modules/portyl/dist/index.umd.js"></script>
 <script>
   const viewer = new BrowserFileViewer.BrowserFileViewer();
 </script>
@@ -122,7 +128,7 @@ interface ViewerResult {
 
 ### Basic Image Viewer
 ```typescript
-import { BrowserFileViewer } from 'browser-file-viewer';
+import { BrowserFileViewer } from 'portyl';
 
 const viewer = new BrowserFileViewer();
 const container = document.getElementById('image-container');
@@ -181,15 +187,15 @@ if (viewer.canView(file)) {
 The library adds CSS classes that you can style:
 
 ```css
-.browser-file-viewer {
+.portyl {
   /* Main viewer container */
 }
 
-.browser-file-viewer.image-viewer {
+.portyl.image-viewer {
   /* Image viewer specific styles */
 }
 
-.browser-file-viewer .file-info {
+.portyl .file-info {
   /* File information panel */
 }
 ```

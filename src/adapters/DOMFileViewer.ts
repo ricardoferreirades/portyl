@@ -125,11 +125,11 @@ export class DOMFileViewer {
    */
   private setupDOM(): void {
     this.container.innerHTML = '';
-    this.container.className = 'browser-file-viewer-container';
+    this.container.className = 'portyl-container';
 
     // Create canvas
     this.canvas = document.createElement('canvas');
-    this.canvas.className = 'browser-file-viewer-canvas';
+    this.canvas.className = 'portyl-canvas';
     this.canvas.style.display = 'block';
     this.canvas.style.maxWidth = '100%';
     this.canvas.style.maxHeight = '100%';

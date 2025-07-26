@@ -1,8 +1,8 @@
 {
-  "name": "browser-file-viewer-frontend",
+  "name": "portyl-frontend",
   "version": "1.0.0",
   "type": "module",
-  "description": "Frontend demo for browser file viewer library",
+  "description": "Frontend demo for Portyl library",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "browser-file-viewer": "file:../../",
+    "portyl": "file:../../",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {

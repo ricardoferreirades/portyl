@@ -326,12 +326,12 @@ canvas {
 }
 
 /* Library-specific styles */
-.browser-file-viewer {
+.portyl {
   width: 100%;
   height: 100%;
 }
 
-.browser-file-viewer .file-info {
+.portyl .file-info {
   margin-top: 16px;
   padding: 16px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -340,11 +340,11 @@ canvas {
   border: 1px solid #e2e8f0;
 }
 
-.browser-file-viewer .file-info div {
+.portyl .file-info div {
   margin-bottom: 4px;
 }
 
-.browser-file-viewer .page-controls {
+.portyl .page-controls {
   margin-top: 16px;
   display: flex;
   align-items: center;
@@ -352,7 +352,7 @@ canvas {
   gap: 12px;
 }
 
-.browser-file-viewer .page-controls button {
+.portyl .page-controls button {
   padding: 8px 16px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -364,18 +364,18 @@ canvas {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.browser-file-viewer .page-controls button:hover:not(:disabled) {
+.portyl .page-controls button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.browser-file-viewer .page-controls button:disabled {
+.portyl .page-controls button:disabled {
   background: #9ca3af;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.browser-file-viewer .page-controls span {
+.portyl .page-controls span {
   font-weight: 600;
   color: #374151;
   padding: 0 8px;

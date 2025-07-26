@@ -1,4 +1,4 @@
-import { BrowserFileViewer, DOMFileViewer } from 'browser-file-viewer';
+import { BrowserFileViewer, DOMFileViewer } from 'portyl';
 import './style.css';
 
 // Initialize the file viewer with new architecture

@@ -1,5 +1,5 @@
 {
-  "name": "browser-file-viewer-api",
+  "name": "portyl-api",
   "version": "1.0.0",
   "description": "API server for browser file viewer example",
   "main": "dist/server.js",

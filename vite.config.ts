@@ -13,7 +13,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'browser-file-viewer': resolve(__dirname, 'dist/index.esm.js'),
+      'portyl': resolve(__dirname, 'dist/index.esm.js'),
     },
   },
   build: {

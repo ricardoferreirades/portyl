@@ -3,7 +3,7 @@
 // Configuration System Test - Topic 3 Completion Verification
 import { ConfigurationManager, ConfigPresets, ConfigValidator, FileStatsCalculator } from './dist/index.esm.js';
 
-console.log('🔧 Browser File Viewer Configuration System Test');
+console.log('🔧 Portyl Configuration System Test');
 console.log('==============================================');
 
 try {
