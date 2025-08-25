@@ -1,7 +1,12 @@
 
+
 # Portyl
 
 Portyl is a lightweight, framework-agnostic TypeScript library for rendering files in the browser through a unified canvas-based viewer.
+
+## Live Example
+
+[View the Portyl demo on GitHub Pages](https://ricardoferreirades.github.io/portyl/)
 
 ## Features
 
