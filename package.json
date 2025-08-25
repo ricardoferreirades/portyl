@@ -1,6 +1,6 @@
 {
   "name": "portyl",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "A flexible, framework-agnostic library for rendering any file to canvas directly in the browser.",
   "main": "dist/index.cjs.js",
