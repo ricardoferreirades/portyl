@@ -1,24 +1,15 @@
+
 # Portyl
 
-**Portyl** is a smart, flexible gateway to understanding any file.
-
-A lightweight, framework-agnostic TypeScript library that renders files entirely in the browser through a unified canvas-based viewer.  
-Designed to provide a consistent, extensible way to visualize virtually any file type—across web, desktop, or mobile environments.
-
-**One canvas. Every file. Anywhere.**
-
+Portyl is a lightweight, framework-agnostic TypeScript library for rendering files in the browser through a unified canvas-based viewer.
 
 ## Features
 
-- 🖼️ **Image Support**: View JPEG, PNG, GIF, WebP, SVG, BMP, and TIFF files
-- 🎨 **Canvas-based Rendering**: High-performance rendering with full control
-- 📄 **TIFF Support**: Single and multi-page TIFF files (framework for future enhancement)
-- 🎯 **Framework Agnostic**: Works with any frontend framework or vanilla JavaScript
-- 📱 **Responsive**: Automatically adapts to container size
-- 🔧 **TypeScript**: Full type support and IntelliSense
-- 🎨 **Customizable**: Configurable options for styling and behavior
-- 📊 **File Information**: Optional display of file metadata
-- 🔄 **Error Handling**: Graceful error handling with detailed messages
+- View JPEG, PNG, GIF, WebP, SVG, BMP, TIFF
+- High-performance canvas rendering
+- Framework-agnostic & TypeScript support
+- Responsive and customizable
+- File info & error handling
 
 ## Installation
 
@@ -26,30 +17,20 @@ Designed to provide a consistent, extensible way to visualize virtually any file
 npm install portyl
 ```
 
+
 ## Quick Start
 
-### ES Modules
 ```typescript
 import { BrowserFileViewer } from 'portyl';
 
 const viewer = new BrowserFileViewer();
 const container = document.getElementById('viewer-container');
 
-// View a file
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
 fileInput.addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
   if (file) {
-    const result = await viewer.view(file, {
-      container,
-      showFileInfo: true,
-      maxWidth: 800,
-      maxHeight: 600
-    });
-    
-    if (!result.success) {
-      console.error('Error viewing file:', result.error);
-    }
+    await viewer.view(file, { container });
   }
 });
 ```
@@ -213,36 +194,6 @@ The library adds CSS classes that you can style:
 
 *Multi-page TIFF navigation is ready for enhancement with advanced TIFF parsing
 
-## Development
-
-### Build
-```bash
-npm run build
-```
-
-### Test
-```bash
-npm test
-npm run test:watch
-npm run test:coverage
-```
-
-### Lint
-```bash
-npm run lint
-npm run lint:fix
-```
-
-### Format
-```bash
-npm run format
-npm run format:check
-```
-
-### Example Development
-```bash
-npm run dev:example
-```
 
 ## Browser Support
 
@@ -250,14 +201,6 @@ npm run dev:example
 - Firefox 55+
 - Safari 12+
 - Edge 79+
-
-## Roadmap
-
-- 📹 Video file support (MP4, WebM, AVI)
-- 🎵 Audio file support (MP3, WAV, OGG)
-- 📄 Document support (PDF)
-- 📊 Data visualization (CSV, JSON)
-- 🎨 Advanced image features (zoom, rotate)
 
 ## Contributing
 
@@ -267,6 +210,7 @@ npm run dev:example
 4. Add tests for new functionality
 5. Ensure all tests pass
 6. Submit a pull request
+
 
 ## License
 
