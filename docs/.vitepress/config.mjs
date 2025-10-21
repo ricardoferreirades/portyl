@@ -13,7 +13,7 @@ export default defineConfig({
   ignoreDeadLinks: true,
   
   // Base path - use '/' for local dev, '/portyl/' for GitHub Pages deployment
-  base: '/',
+  base: '/portyl/',
   
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
