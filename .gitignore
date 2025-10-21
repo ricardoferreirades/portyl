@@ -8,6 +8,10 @@ yarn-error.log*
 dist/
 example-dist/
 
+# VitePress
+docs/.vitepress/cache
+docs/.vitepress/dist
+
 # IDE
 .vscode/
 .idea/
