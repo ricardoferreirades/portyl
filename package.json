@@ -23,6 +23,9 @@
     "format:check": "prettier --check .",
     "clean": "rm -rf dist example-dist",
     "prepublishOnly": "npm run clean && npm run build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "api:start": "cd example/api && npm start",
     "api:dev": "cd example/api && npm run dev",
     "api:build": "cd example/api && npm run build",
@@ -72,7 +75,8 @@
     "ts-jest": "^29.4.0",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "vitepress": "^1.6.3"
   },
   "dependencies": {
     "utif": "^3.1.0"
