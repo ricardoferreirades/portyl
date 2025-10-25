@@ -1,66 +1,92 @@
 # API Reference
 
-## BrowserFileViewer
+This page provides a quick overview of the Portyl API. For detailed documentation, see the individual API pages.
 
-The main class for creating a file viewer instance.
+## Quick Reference
 
-### Constructor
+### Main Classes
 
-```typescript
-new BrowserFileViewer(config: ViewerConfig)
-```
+- **[BrowserFileViewer](/api/browser-file-viewer)** - Main viewer class
+- **[DOMFileViewer](/api/dom-file-viewer)** - DOM adapter for easy integration
 
-#### Parameters
+### Processors
 
-- `config` - Configuration object for the viewer
+- **[FileProcessor](/api/file-processor)** - Abstract base for file processing
+- **[ImageProcessor](/api/image-processor)** - Image file processor
 
-### Methods
+### Renderers
 
-#### `loadFile(file: File): Promise<void>`
-
-Loads and renders a file to the canvas.
-
-**Parameters:**
-- `file` - The file to load and render
-
-**Returns:** A promise that resolves when the file is loaded and rendered.
-
-#### `clear(): void`
-
-Clears the canvas.
-
-#### `getStats(): FileStats`
-
-Returns statistics about the currently loaded file.
-
-**Returns:** An object containing file statistics.
+- **[Renderer](/api/renderer)** - Abstract base for rendering
+- **[CanvasRenderer](/api/canvas-renderer)** - Canvas-based renderer
 
 ### Configuration
 
+- **[ViewerConfig](/api/viewer-config)** - Basic configuration
+- **[ConfigurationManager](/api/configuration-manager)** - Advanced configuration management
+- **[RenderOptions](/api/render-options)** - Rendering options
+
+### Utilities
+
+- **[FileUtils](/api/file-utils)** - File utility functions
+- **[StateManager](/api/state-manager)** - State management
+- **[Types](/api/types)** - TypeScript type definitions
+
+## Quick Start
+
 ```typescript
-interface ViewerConfig {
-  canvas: HTMLCanvasElement;
-  maxWidth?: number;
-  maxHeight?: number;
-  maintainAspectRatio?: boolean;
-  backgroundColor?: string;
+import { BrowserFileViewer } from 'portyl';
+
+// Create viewer
+const viewer = new BrowserFileViewer({
+  maxDimensions: { width: 1920, height: 1080 },
+  showFileInfo: true,
+  enablePagination: true
+});
+
+// Load and render file
+const result = await viewer.loadFile(file);
+if (result.success) {
+  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  await viewer.renderToTarget(canvas);
 }
 ```
 
-### File Stats
+## DOM Integration
 
 ```typescript
-interface FileStats {
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  width: number;
-  height: number;
-  loadTime: number;
+import { DOMFileViewer } from 'portyl';
+
+// Simple DOM integration
+const container = document.getElementById('viewer');
+const viewer = new DOMFileViewer(container);
+await viewer.loadFile(file);
+```
+
+## Framework Integration
+
+### React
+```typescript
+import { BrowserFileViewer } from 'portyl';
+
+function FileViewer({ file }) {
+  const viewer = useRef(new BrowserFileViewer());
+  // ... implementation
+}
+```
+
+### Vue
+```typescript
+import { BrowserFileViewer } from 'portyl';
+
+export default {
+  setup() {
+    const viewer = new BrowserFileViewer();
+    // ... implementation
+  }
 }
 ```
 
 ## Examples
 
-See the [Usage Guide](/guide/usage) for practical examples.
+See the [Examples](/examples/overview) section for practical implementations.
 
