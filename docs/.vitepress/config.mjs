@@ -1,5 +1,9 @@
 import { defineConfig } from 'vitepress'
 
+// Allow overriding base path for local vs production (e.g., GitHub Pages)
+// Set DOCS_BASE="/portyl/" for production deploys; defaults to "/" for local preview
+const basePath = process.env.DOCS_BASE || '/';
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'Portyl',
@@ -12,8 +16,8 @@ export default defineConfig({
   // Ignore dead links during build (common during documentation development)
   ignoreDeadLinks: true,
   
-  // Base path - use '/' for local dev, '/portyl/' for GitHub Pages deployment
-  base: '/portyl/',
+  // Base path - configurable via DOCS_BASE env var
+  base: basePath,
   
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
