@@ -1,52 +1,68 @@
 # Usage
 
-## Basic Example
+This page shows the common flow. For full options and types, see the API pages for [`BrowserFileViewer`](/api/browser-file-viewer), [`RenderOptions`](/api/render-options), and [`ViewerConfig`](/api/viewer-config).
 
-Here's a simple example of how to use Portyl:
+## Basic flow
 
 ```typescript
 import { BrowserFileViewer } from 'portyl';
 
-// Create a viewer instance
-const viewer = new BrowserFileViewer({
-  canvas: document.getElementById('myCanvas'),
-  maxWidth: 800,
-  maxHeight: 600
-});
+const viewer = new BrowserFileViewer();
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
-// Handle file input
-const fileInput = document.getElementById('fileInput');
-fileInput.addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    await viewer.loadFile(file);
+async function show(file: File) {
+  const result = await viewer.loadFile(file);
+  if (result.success) {
+    await viewer.renderToTarget(canvas);
   }
-});
+}
 ```
 
-## Configuration Options
-
-You can configure the viewer with various options:
+## Rendering options (quick)
 
 ```typescript
-const viewer = new BrowserFileViewer({
-  canvas: myCanvas,
-  maxWidth: 1920,
-  maxHeight: 1080,
-  maintainAspectRatio: true,
+await viewer.renderToTarget(canvas, {
+  maxWidth: 800,
+  maxHeight: 600,
+  preserveAspectRatio: true,
   backgroundColor: '#ffffff'
 });
 ```
 
-## Supported File Types
+See [`RenderOptions`](/api/render-options) for all fields.
 
-Portyl supports various file types including:
+## Pagination (multi‑page files like TIFF)
 
-- Images (PNG, JPEG, GIF, WebP)
-- TIFF files
-- And more...
+```typescript
+await viewer.loadFile(tiffFile);
 
-## Advanced Usage
+await viewer.nextPage();
+await viewer.previousPage();
+await viewer.jumpToPage(5);
 
-For more advanced usage and customization options, check out the [API Reference](/api/reference).
+const info = viewer.getPaginationInfo();
+// { currentPage, totalPages, canGoNext, canGoPrevious }
+```
+
+## Configuration updates
+
+```typescript
+viewer.updateConfig({
+  maxDimensions: { width: 1920, height: 1080 },
+  showFileInfo: true
+});
+```
+
+## DOM helper
+
+Prefer a drop‑in helper? Use `DOMFileViewer` to manage a canvas and simple pagination controls for you.
+
+```typescript
+import { DOMFileViewer } from 'portyl';
+
+const viewer = new DOMFileViewer(document.getElementById('viewer')!);
+await viewer.loadFile(file);
+```
+
+For supported types, call `getSupportedTypes()` or see [`Types`](/api/types).
 
