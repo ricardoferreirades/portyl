@@ -35,12 +35,10 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/introduction', activeMatch: '/guide/' },
       { text: 'Tutorial', link: '/tutorial/your-first-viewer', activeMatch: '/tutorial/' },
       { text: 'API', link: '/api/overview', activeMatch: '/api/' },
-      { text: 'Examples', link: '/examples/overview', activeMatch: '/examples/' },
       {
         text: 'v1.0.1',
         items: [
-          { text: 'Changelog', link: 'https://github.com/ricardoferreirades/portyl/blob/main/CHANGELOG.md' },
-          { text: 'Contributing', link: '/guide/contributing' }
+          { text: 'Changelog', link: 'https://github.com/ricardoferreirades/portyl/blob/main/CHANGELOG.md' }
         ]
       }
     ],
@@ -62,65 +60,14 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'Core Concepts', link: '/guide/core-concepts' },
-            { text: 'File Processing', link: '/guide/file-processing' },
-            { text: 'Rendering', link: '/guide/rendering' },
-            { text: 'State Management', link: '/guide/state-management' },
-            { text: 'Event System', link: '/guide/events' },
-            { text: 'Configuration', link: '/guide/configuration' }
-          ]
-        },
-        {
-          text: 'Framework Integration',
-          collapsed: false,
-          items: [
-            { text: 'Vanilla JavaScript', link: '/guide/vanilla-js' },
-            { text: 'React', link: '/guide/react' },
-            { text: 'Vue', link: '/guide/vue' },
-            { text: 'Angular', link: '/guide/angular' },
-            { text: 'Svelte', link: '/guide/svelte' }
+            { text: 'Usage', link: '/guide/usage' }
           ]
         },
         {
           text: 'Desktop Applications',
           collapsed: false,
           items: [
-            { text: 'Overview', link: '/guide/desktop-overview' },
-            { text: 'Electron', link: '/guide/electron' },
-            { text: 'Tauri', link: '/guide/tauri' },
-            { text: 'NW.js', link: '/guide/nwjs' },
-            { text: 'Neutralino', link: '/guide/neutralino' }
-          ]
-        },
-        {
-          text: 'Advanced Topics',
-          collapsed: false,
-          items: [
-            { text: 'Custom Processors', link: '/guide/custom-processors' },
-            { text: 'Custom Renderers', link: '/guide/custom-renderers' },
-            { text: 'Multi-page Files', link: '/guide/multi-page' },
-            { text: 'Performance Optimization', link: '/guide/performance' },
-            { text: 'Error Handling', link: '/guide/error-handling' },
-            { text: 'TypeScript', link: '/guide/typescript' }
-          ]
-        },
-        {
-          text: 'Best Practices',
-          collapsed: false,
-          items: [
-            { text: 'Architecture', link: '/guide/best-practices' },
-            { text: 'Testing', link: '/guide/testing' },
-            { text: 'Accessibility', link: '/guide/accessibility' },
-            { text: 'Security', link: '/guide/security' }
-          ]
-        },
-        {
-          text: 'Resources',
-          collapsed: false,
-          items: [
-            { text: 'FAQ', link: '/guide/faq' },
-            { text: 'Troubleshooting', link: '/guide/troubleshooting' },
-            { text: 'Migration Guide', link: '/guide/migration' },
-            { text: 'Contributing', link: '/guide/contributing' }
+            { text: 'Desktop Integration', link: '/guide/desktop-integration' }
           ]
         }
       ],
@@ -129,12 +76,7 @@ export default defineConfig({
         {
           text: 'Tutorial',
           items: [
-            { text: 'Your First Viewer', link: '/tutorial/your-first-viewer' },
-            { text: 'Adding Pagination', link: '/tutorial/pagination' },
-            { text: 'File Upload', link: '/tutorial/file-upload' },
-            { text: 'Drag and Drop', link: '/tutorial/drag-drop' },
-            { text: 'Custom Styling', link: '/tutorial/styling' },
-            { text: 'Building a Gallery', link: '/tutorial/gallery' }
+            { text: 'Your First Viewer', link: '/tutorial/your-first-viewer' }
           ]
         }
       ],
@@ -182,23 +124,7 @@ export default defineConfig({
         }
       ],
       
-      '/examples/': [
-        {
-          text: 'Examples',
-          items: [
-            { text: 'Overview', link: '/examples/overview' },
-            { text: 'Basic Usage', link: '/examples/basic' },
-            { text: 'File Upload', link: '/examples/file-upload' },
-            { text: 'Drag and Drop', link: '/examples/drag-drop' },
-            { text: 'Image Gallery', link: '/examples/gallery' },
-            { text: 'Multi-page TIFF', link: '/examples/tiff' },
-            { text: 'React Integration', link: '/examples/react' },
-            { text: 'Vue Integration', link: '/examples/vue' },
-            { text: 'Electron App', link: '/examples/electron' },
-            { text: 'Custom Renderer', link: '/examples/custom-renderer' }
-          ]
-        }
-      ]
+      // No /examples/ section; examples are covered inline in guides and API
     },
 
     socialLinks: [
