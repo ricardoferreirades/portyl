@@ -2,18 +2,42 @@
 
 The Portyl API is designed to be framework-agnostic and provides a clean separation between file processing, rendering, and state management. This modular architecture allows you to use only the components you need while maintaining flexibility for custom implementations.
 
-## Core Architecture
+## Architecture Overview
 
-```mermaid
-graph TD
-    A[BrowserFileViewer] --> B[FileProcessor]
-    A --> C[Renderer]
-    A --> D[StateManager]
-    B --> E[ImageProcessor]
-    C --> F[CanvasRenderer]
-    D --> G[ProcessorStateManager]
-    H[DOMFileViewer] --> A
-    I[ConfigurationManager] --> A
+Portyl separates concerns into processing (read/parse), state (pagination/status), and rendering (draw to a target), enabling process-once, render-anywhere workflows.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      File Input                          │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+           ┌──────────▼──────────┐
+           │    Processors       │
+           │  (FileProcessor)    │
+           │  - Load file data   │
+           │  - Parse format     │
+           │  - Extract pages    │
+           └──────────┬──────────┘
+                      │
+           ┌──────────▼──────────┐
+           │  State Management   │
+           │  (StateManager)     │
+           │  - Current page     │
+           │  - Total pages      │
+           │  - Loading state    │
+           └──────────┬──────────┘
+                      │
+           ┌──────────▼──────────┐
+           │     Renderers       │
+           │  (CanvasRenderer)   │
+           │  - Draw to canvas   │
+           │  - Handle sizing    │
+           │  - Apply options    │
+           └──────────┬──────────┘
+                      │
+           ┌──────────▼──────────┐
+           │   Canvas Output     │
+           └─────────────────────┘
 ```
 
 ## Main Components
