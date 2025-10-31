@@ -141,54 +141,43 @@ export default defineConfig({
       
       '/api/': [
         {
-          text: 'Core API',
+          text: 'Overview',
           collapsed: false,
           items: [
-            { text: 'Overview', link: '/api/overview' },
+            { text: 'Architecture Overview', link: '/api/overview' }
+          ]
+        },
+        {
+          text: 'For Application Developers',
+          collapsed: false,
+          items: [
+            { text: 'Start here', link: '/api/for-app-developers' },
             { text: 'BrowserFileViewer', link: '/api/browser-file-viewer' },
-            { text: 'DOMFileViewer', link: '/api/dom-file-viewer' }
-          ]
-        },
-        {
-          text: 'Processors',
-          collapsed: false,
-          items: [
-            { text: 'FileProcessor', link: '/api/file-processor' },
-            { text: 'ImageProcessor', link: '/api/image-processor' }
-          ]
-        },
-        {
-          text: 'Renderers',
-          collapsed: false,
-          items: [
-            { text: 'Renderer', link: '/api/renderer' },
-            { text: 'CanvasRenderer', link: '/api/canvas-renderer' }
-          ]
-        },
-        {
-          text: 'Configuration',
-          collapsed: false,
-          items: [
+            { text: 'DOMFileViewer', link: '/api/dom-file-viewer' },
             { text: 'ViewerConfig', link: '/api/viewer-config' },
             { text: 'RenderOptions', link: '/api/render-options' },
+            { text: 'StateManager', link: '/api/state-manager' }
+          ]
+        },
+        {
+          text: 'For Extension Authors',
+          collapsed: false,
+          items: [
+            { text: 'Start here', link: '/api/for-extenders' },
+            { text: 'FileProcessor', link: '/api/file-processor' },
+            { text: 'ImageProcessor', link: '/api/image-processor' },
+            { text: 'Renderer', link: '/api/renderer' },
+            { text: 'CanvasRenderer', link: '/api/canvas-renderer' },
             { text: 'ConfigurationManager', link: '/api/configuration-manager' }
           ]
         },
         {
-          text: 'Types & Interfaces',
+          text: 'For Maintainers & Power Users',
           collapsed: false,
           items: [
-            { text: 'Types Reference', link: '/api/types' },
-            { text: 'Interfaces', link: '/api/interfaces' },
-            { text: 'Enums', link: '/api/enums' }
-          ]
-        },
-        {
-          text: 'Utilities',
-          collapsed: false,
-          items: [
-            { text: 'FileUtils', link: '/api/file-utils' },
-            { text: 'StateManager', link: '/api/state-manager' }
+            { text: 'Start here', link: '/api/for-maintainers' },
+            { text: 'Types', link: '/api/types' },
+            { text: 'FileUtils', link: '/api/file-utils' }
           ]
         }
       ],
