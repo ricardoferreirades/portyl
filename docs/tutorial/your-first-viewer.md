@@ -314,18 +314,18 @@ if (paginationInfo && paginationInfo.totalPages > 1) {
 
 ## Learn More
 
-- [**Adding Pagination**](/tutorial/pagination) - Handle multi-page files
-- [**File Upload**](/tutorial/file-upload) - Build a complete upload system
-- [**Drag and Drop**](/tutorial/drag-drop) - Add drag and drop support
 - [**Core Concepts**](/guide/core-concepts) - Understand how it works
+- [**Usage**](/guide/usage) - Common flow, options, pagination
+- [**Desktop Integration**](/guide/desktop-integration) - Electron/Tauri patterns
+- [**API Overview**](/api/overview) - Architecture and main components
+- [**API Reference**](/api/reference) - Full API index
 
-## Full Source Code
+## Example Source
 
-You can find the complete source code for this tutorial on [GitHub](https://github.com/ricardoferreirades/portyl/tree/main/examples/first-viewer).
+See example projects in the repository: [examples](https://github.com/ricardoferreirades/portyl/tree/main/example).
 
 ## Need Help?
 
-- Check the [FAQ](/guide/faq)
-- Read the [Troubleshooting Guide](/guide/troubleshooting)
 - Ask on [GitHub Discussions](https://github.com/ricardoferreirades/portyl/discussions)
+- Open an issue on [GitHub Issues](https://github.com/ricardoferreirades/portyl/issues)
 

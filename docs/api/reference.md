@@ -88,5 +88,5 @@ export default {
 
 ## Examples
 
-See the [Examples](/examples/overview) section for practical implementations.
+See the [example projects](https://github.com/ricardoferreirades/portyl/tree/main/example) in the repository for practical implementations.
 

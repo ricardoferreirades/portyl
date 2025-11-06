@@ -471,4 +471,3 @@ configManager.addListener('performance-changes', (path, newValue) => {
 
 - [ViewerConfig](/api/viewer-config) - Basic configuration interface
 - [BrowserFileViewer](/api/browser-file-viewer) - Main viewer class
-- [ConfigPresets](/api/config-presets) - Configuration presets

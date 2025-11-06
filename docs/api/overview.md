@@ -235,5 +235,5 @@ import type {
 ## Next Steps
 
 - [BrowserFileViewer API](/api/browser-file-viewer) - Main viewer class
-- [Configuration Guide](/guide/configuration) - Configuration options
+- [Viewer Configuration](/api/viewer-config) - Configuration options
 - [Tutorial: Your First Viewer](/tutorial/your-first-viewer) - Step-by-step guide
